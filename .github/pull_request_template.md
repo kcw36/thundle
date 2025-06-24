@@ -25,12 +25,5 @@ Closes: # (issue)
 - [ ] New and existing unit tests pass locally with my changes
 - [ ] My code has a pylint score over 8
 
-# Additional Details
-
-<!-- Please include any additional details for PR could include screenshots of changes. -->
-
 # Mentions
-@xaviachristi
-@Emily-Prust
-@MariosT4
 @kcw36
