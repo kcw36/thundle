@@ -1,6 +1,7 @@
 """Module for extracting information from war thunder api."""
 
 from requests import get
+from json import dumps
 
 from logging import getLogger
 
@@ -26,4 +27,7 @@ def extract(n: int = 0, m: int = 14) -> list[dict]:
 
 
 if __name__ == "__main__":
-    print(extract(0, 14))
+    data = extract(0, 2)
+    with open("example_response.json", "w", encoding="utf-8") as f:
+        j_data = dumps(data, indent=4)
+        f.write(j_data)
