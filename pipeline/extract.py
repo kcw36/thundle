@@ -1,9 +1,9 @@
 """Module for extracting information from war thunder api."""
 
-from requests import get
 from json import dumps
-
 from logging import getLogger
+
+from requests import get
 
 
 def get_response_page(pg_no: int) -> list[dict]:
@@ -12,7 +12,8 @@ def get_response_page(pg_no: int) -> list[dict]:
     logger.info("Sending request to API for page: %s", pg_no)
     payload = {"limit": 200, "page": pg_no}
     response = get("https://www.wtvehiclesapi.sgambe.serv00.net/api/vehicles",
-                   params=payload)
+                   params=payload,
+                   timeout=10)
     return response.json()
 
 

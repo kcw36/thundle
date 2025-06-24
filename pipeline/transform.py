@@ -1,1 +1,2 @@
 """Module for transforming api response into refined DataFrame."""
+

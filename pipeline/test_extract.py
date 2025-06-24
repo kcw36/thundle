@@ -25,7 +25,8 @@ class TestGetResponsePage(TestCase):
         # Assert
         mock_get.assert_called_once_with(
             "https://www.wtvehiclesapi.sgambe.serv00.net/api/vehicles",
-            params={"limit": 200, "page": 2}
+            params={"limit": 200, "page": 2},
+            timeout=10
         )
         self.assertEqual(result, expected_data)
 
