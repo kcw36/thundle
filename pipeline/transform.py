@@ -13,7 +13,7 @@ async def fetch(session: ClientSession, url: str) -> str:
     """Get async client connection."""
     async with session.get(url, timeout=30) as resp:
         return await resp.text()
-    
+
 
 def parse_name(soup: BeautifulSoup) -> str:
     """Parse name from soup."""
@@ -74,11 +74,13 @@ def get_refined_frame(data: DataFrame) -> DataFrame:
     ]
     refined = data[cols_to_keep].copy()
 
-    refined["images"] = refined["images"].apply(lambda x: x.get("image") if isinstance(x, dict) else None)
-    refined["event"] = refined["event"].apply(lambda x: True if x else False)
+    refined["images"] = refined["images"].apply(
+        lambda x: x.get("image") if isinstance(x, dict) else None)
+    refined["event"] = refined["event"].astype(bool)
     refined["release_date"] = to_datetime(refined["release_date"], utc=True)
-    refined["release_date"] = refined["release_date"].replace({None: datetime(year=2016, month=12, day=21)})
-    
+    refined["release_date"] = refined["release_date"].replace(
+        {None: datetime(year=2016, month=12, day=21)})
+
     vehicle_type_to_mode = {
         "fighter": "air",
         "assault": "air",
@@ -99,7 +101,6 @@ def get_refined_frame(data: DataFrame) -> DataFrame:
         "heavy_boat": "naval"
     }
     refined["mode"] = refined["vehicle_type"].map(vehicle_type_to_mode)
-    
     rename_cols = {
         "event": "is_event",
         "on_marketplace": "is_marketplace", 
@@ -135,5 +136,5 @@ async def transform_async(raw: list[dict]) -> DataFrame:
 
 if __name__ == "__main__":
     with open("example_response.json", "r", encoding="utf-8") as f:
-        data = loads(f.read())
-    print(transform(data))
+        raw_dict = loads(f.read())
+    print(transform(raw_dict))
