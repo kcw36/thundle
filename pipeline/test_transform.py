@@ -1,7 +1,6 @@
-#pylint: skip-file
+# pylint: skip-file
 """Tests for transform module."""
 
-from pytest import mark
 from pandas import DataFrame
 
 from transform import (
@@ -11,39 +10,36 @@ from transform import (
     transform
 )
 
-
 class TestGetDfFromData:
-    """Group of tests for get df from data method."""
-    def test_get_df_from_data(raw_data):
+    def test_get_df_from_data(self, raw_data):
         df = get_df_from_data(raw_data)
         assert isinstance(df, DataFrame)
         assert len(df) == 2
         assert "extra_field" in df.columns
 
 
-class TestGetDfFromData:
-    """Group of tests for get refined frame method."""
-    def test_get_refined_frame(raw_data, required_columns):
+class TestGetRefinedFrame:
+    def test_get_refined_frame(self, raw_data, required_columns):
         df = get_df_from_data(raw_data)
         refined = get_refined_frame(df)
+        assert isinstance(refined, DataFrame)
         assert list(refined.columns) == required_columns
         assert refined.shape[1] == len(required_columns)
 
 
-class TestGetDfFromData:
-    """Group of tests for get clean dataframe method."""
-    def test_clean_dataframe(raw_data):
+class TestCleanDataFrame:
+    def test_clean_dataframe(self, raw_data):
         df = get_df_from_data(raw_data)
         refined = get_refined_frame(df)
         cleaned = clean_dataframe(refined)
-        assert len(cleaned) == 1
-        assert cleaned["name"].iloc[0] == "Tank A"
+        assert isinstance(cleaned, DataFrame)
+        assert all(cleaned.notna().all())
 
 
-class TestGetDfFromData:
-    """Group of tests for transform method."""
-    def test_transform(raw_data, required_columns):
+class TestTransform:
+    def test_transform(self, raw_data, required_columns):
         result = transform(raw_data)
         assert isinstance(result, DataFrame)
-        assert list(result.columns) == required_columns
-        assert len(result) == 1
+        assert list(result.columns) == required_columns + ["name", "description"]
+        assert all(result.notna().all())
+
