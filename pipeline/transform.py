@@ -1,8 +1,47 @@
 """Module for transforming api response into refined DataFrame."""
 
 from json import loads
+from re import sub
 
 from pandas import DataFrame, to_datetime
+
+
+def get_clean_plane_name(name: str) -> str:
+    """Return clean and human-readable plane name from identifier."""
+    country_list = {"usa", "ussr", "china", "germany", "britain", "france", "italy", "japan", "sweden", "israel"}
+
+    name = name.lower()
+    parts = name.split('_')
+
+    country = None
+    if parts and parts[-1] in country_list:
+        country = parts.pop().upper()
+
+    result_parts = []
+
+    for part in parts:
+        sub_parts = part.split('-')
+        new_sub_parts = []
+        for sub in sub_parts:
+            if re.search(r'\d', sub):
+                new_sub_parts.append(sub.upper())
+            elif sub.isalpha():
+                new_sub_parts.append(sub.title())
+            else:
+                new_sub_parts.append(sub)
+        result_parts.append('-'.join(new_sub_parts))
+
+    result = ' '.join(result_parts)
+
+    if country:
+        result += f" [{country}]"
+
+    return result
+
+
+def get_name_from_wiki():
+    """Return human friendly name from war thunder wiki by scraping the url."""
+
 
 def get_df_from_data(raw: list[dict]) -> DataFrame:
     """Return dataframe from list of dictionaries."""
@@ -16,9 +55,9 @@ def get_refined_frame(data: DataFrame) -> DataFrame:
         "realistic_br", "realistic_ground_br", "event", "release_date",
         "is_premium", "is_pack", "on_marketplace", "squadron_vehicle", "images"
     ]
-    refined = data[cols_to_keep]
+    refined = data[cols_to_keep].copy()
 
-    refined["images"] = refined["images"].apply(lambda x: x["image"])
+    refined["images"] = refined["images"].apply(lambda x: x.get("image") if isinstance(x, dict) else None)
     refined["event"] = refined["event"].apply(lambda x: True if x else False)
     refined["release_date"] = to_datetime(refined["release_date"], utc=True)
 
@@ -50,8 +89,7 @@ def get_refined_frame(data: DataFrame) -> DataFrame:
         "squadron_vehicle": "is_squadron", 
         "images": "image_url", "era": "tier"
     }
-    renamed = refined.rename(columns=rename_cols)
-    return renamed
+    return refined.rename(columns=rename_cols)
 
 
 def clean_dataframe(data: DataFrame) -> DataFrame:
