@@ -1,42 +1,68 @@
 """Module for transforming api response into refined DataFrame."""
 
 from json import loads
-from asyncio import run
+from asyncio import run, gather
+from datetime import datetime
 
 from bs4 import BeautifulSoup
 from aiohttp import ClientSession
 from pandas import DataFrame, to_datetime, NA
 
 
-def get_soup_from_wiki(url: str) -> str:
-    """Return soup from war thunder wiki by scraping the url."""
-    print("Getting soup for ", url)
-    page =  get(url, timeout=10)
-    return BeautifulSoup(page.content, "html.parser")
+async def fetch(session: ClientSession, url: str) -> str:
+    """Get async client connection."""
+    async with session.get(url, timeout=30) as resp:
+        return await resp.text()
+    
+
+def parse_name(soup: BeautifulSoup) -> str:
+    """Parse name from soup."""
+    tag = soup.find("div", class_="game-unit_name")
+    return tag.text.strip() if tag else None
 
 
-def get_name_from_soup(soup: BeautifulSoup) -> str:
-    """Return name from html soup."""
-    return soup.find("div", class_="game-unit_name")
+def parse_desc(soup: BeautifulSoup) -> str:
+    """Parse description from soup."""
+    tag = soup.find("div", class_="content-markdown")
+    return tag.text.strip() if tag else None
 
 
-def get_desc_from_soup(soup: BeautifulSoup) -> str:
-    """Return description from html soup."""
-    return soup.find("div", class_="game-unit_desc mb-3")
+async def fetch_name_and_description(session, identifier):
+    """Return name and description from wiki."""
+    url = f"https://wiki.warthunder.com/unit/{identifier}"
+    print(f"Fetching {url}")
+    try:
+        html = await fetch(session, url)
+        soup = BeautifulSoup(html, "html.parser")
+        return {
+            "identifier": identifier,
+            "name": parse_name(soup),
+            "description": parse_desc(soup)
+        }
+    except Exception as e:
+        print(f"Error fetching {url}: {e.with_traceback()}")
+        return {
+            "identifier": identifier,
+            "name": None,
+            "description": None
+        }
+
+
+async def get_name_and_description(df: DataFrame) -> DataFrame:
+    """Return name and description added to dataframe."""
+    identifiers = df["identifier"].tolist()
+    async with ClientSession() as session:
+        tasks = [fetch_name_and_description(session, ident) for ident in identifiers]
+        results = await gather(*tasks)
+
+    result_df = DataFrame(results)
+    df = df.merge(result_df, on="identifier", how="left")
+    return df
 
 
 def get_df_from_data(raw: list[dict]) -> DataFrame:
     """Return dataframe from list of dictionaries."""
     return DataFrame(raw)
-
-
-async def get_name_and_description(df: DataFrame) -> DataFrame:
-    """Return DataFrame with name and description from wiki."""
-    df["name"] = df["name"].apply(
-        lambda x: get_name_from_soup(get_soup_from_wiki(f"https://wiki.warthunder.com/unit/{x}")))
-    df["description"] = df["name"].apply(
-        lambda x: get_desc_from_soup(get_soup_from_wiki(f"https://wiki.warthunder.com/unit/{x}")))
-    return df
 
 
 def get_refined_frame(data: DataFrame) -> DataFrame:
@@ -51,6 +77,7 @@ def get_refined_frame(data: DataFrame) -> DataFrame:
     refined["images"] = refined["images"].apply(lambda x: x.get("image") if isinstance(x, dict) else None)
     refined["event"] = refined["event"].apply(lambda x: True if x else False)
     refined["release_date"] = to_datetime(refined["release_date"], utc=True)
+    refined["release_date"] = refined["release_date"].replace({None: datetime(year=2016, month=12, day=21)})
     
     vehicle_type_to_mode = {
         "fighter": "air",
@@ -72,10 +99,9 @@ def get_refined_frame(data: DataFrame) -> DataFrame:
         "heavy_boat": "naval"
     }
     refined["mode"] = refined["vehicle_type"].map(vehicle_type_to_mode)
-
-
+    
     rename_cols = {
-        "identifier": "name", "event": "is_event",
+        "event": "is_event",
         "on_marketplace": "is_marketplace", 
         "squadron_vehicle": "is_squadron", 
         "images": "image_url", "era": "tier"
@@ -85,23 +111,29 @@ def get_refined_frame(data: DataFrame) -> DataFrame:
 
 def clean_dataframe(data: DataFrame) -> DataFrame:
     """Return cleaned dataframe without empty or invalid data points."""
-    data = data.replace(None, NA)
+    data = data.replace({None: NA})
     return data.dropna(how="any")
 
 
 def transform(raw: list[dict]) -> DataFrame:
     """Return cleaned and refined dataframe from raw data."""
     df = get_df_from_data(raw)
-    print(raw[:10])
     df = get_refined_frame(df)
-    print(df.head(10))
     df = run(get_name_and_description(df))
     df = clean_dataframe(df)
-    print(df.head(10))
+    return df
+
+
+async def transform_async(raw: list[dict]) -> DataFrame:
+    """Return cleaned and refined dataframe from raw data as async for use in notebook."""
+    df = get_df_from_data(raw)
+    df = get_refined_frame(df)
+    df = await get_name_and_description(df)
+    df = clean_dataframe(df)
     return df
 
 
 if __name__ == "__main__":
     with open("example_response.json", "r", encoding="utf-8") as f:
         data = loads(f.read())
-    print(transform(data).head())
+    print(transform(data))
