@@ -1,0 +1,56 @@
+permissions:
+  contents: read
+
+name: Code Quality
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+jobs:
+  build:
+    name: "Build dependancies"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+      - name: "Install python"
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.X'
+          cache: 'pip'
+      - name: "Install all requirements.txt in subdirectories"
+        run: |
+          find . -name "requirements*.txt" -exec pip install -r {} \;
+  lint:
+    name: "Lint code"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+      - name: "Install python"
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.X'
+          cache: 'pip'
+      - name: "Install all requirements.txt in subdirectories"
+        run: |
+          find . -name "requirements*.txt" -exec pip install -r {} \;
+      - name: "Lint code"
+        run: pylint --fail-under=8 **/*.py
+  test:
+    name: "Test code"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+      - name: "Install python"
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.X'
+          cache: 'pip'
+      - name: "Install all requirements.txt in subdirectories"
+        run: |
+          find . -name "requirements*.txt" -exec pip install -r {} \;
+      - name: "Run tests"
+        run: pytest
