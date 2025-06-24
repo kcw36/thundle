@@ -1,51 +1,42 @@
 """Module for transforming api response into refined DataFrame."""
 
 from json import loads
-from re import sub
+from asyncio import run
 
-from pandas import DataFrame, to_datetime
-
-
-def get_clean_plane_name(name: str) -> str:
-    """Return clean and human-readable plane name from identifier."""
-    country_list = {"usa", "ussr", "china", "germany", "britain", "france", "italy", "japan", "sweden", "israel"}
-
-    name = name.lower()
-    parts = name.split('_')
-
-    country = None
-    if parts and parts[-1] in country_list:
-        country = parts.pop().upper()
-
-    result_parts = []
-
-    for part in parts:
-        sub_parts = part.split('-')
-        new_sub_parts = []
-        for sub in sub_parts:
-            if re.search(r'\d', sub):
-                new_sub_parts.append(sub.upper())
-            elif sub.isalpha():
-                new_sub_parts.append(sub.title())
-            else:
-                new_sub_parts.append(sub)
-        result_parts.append('-'.join(new_sub_parts))
-
-    result = ' '.join(result_parts)
-
-    if country:
-        result += f" [{country}]"
-
-    return result
+from bs4 import BeautifulSoup
+from aiohttp import ClientSession
+from pandas import DataFrame, to_datetime, NA
 
 
-def get_name_from_wiki():
-    """Return human friendly name from war thunder wiki by scraping the url."""
+def get_soup_from_wiki(url: str) -> str:
+    """Return soup from war thunder wiki by scraping the url."""
+    print("Getting soup for ", url)
+    page =  get(url, timeout=10)
+    return BeautifulSoup(page.content, "html.parser")
+
+
+def get_name_from_soup(soup: BeautifulSoup) -> str:
+    """Return name from html soup."""
+    return soup.find("div", class_="game-unit_name")
+
+
+def get_desc_from_soup(soup: BeautifulSoup) -> str:
+    """Return description from html soup."""
+    return soup.find("div", class_="game-unit_desc mb-3")
 
 
 def get_df_from_data(raw: list[dict]) -> DataFrame:
     """Return dataframe from list of dictionaries."""
     return DataFrame(raw)
+
+
+async def get_name_and_description(df: DataFrame) -> DataFrame:
+    """Return DataFrame with name and description from wiki."""
+    df["name"] = df["name"].apply(
+        lambda x: get_name_from_soup(get_soup_from_wiki(f"https://wiki.warthunder.com/unit/{x}")))
+    df["description"] = df["name"].apply(
+        lambda x: get_desc_from_soup(get_soup_from_wiki(f"https://wiki.warthunder.com/unit/{x}")))
+    return df
 
 
 def get_refined_frame(data: DataFrame) -> DataFrame:
@@ -60,7 +51,7 @@ def get_refined_frame(data: DataFrame) -> DataFrame:
     refined["images"] = refined["images"].apply(lambda x: x.get("image") if isinstance(x, dict) else None)
     refined["event"] = refined["event"].apply(lambda x: True if x else False)
     refined["release_date"] = to_datetime(refined["release_date"], utc=True)
-
+    
     vehicle_type_to_mode = {
         "fighter": "air",
         "assault": "air",
@@ -94,14 +85,19 @@ def get_refined_frame(data: DataFrame) -> DataFrame:
 
 def clean_dataframe(data: DataFrame) -> DataFrame:
     """Return cleaned dataframe without empty or invalid data points."""
-    return data
+    data = data.replace(None, NA)
+    return data.dropna(how="any")
 
 
 def transform(raw: list[dict]) -> DataFrame:
     """Return cleaned and refined dataframe from raw data."""
     df = get_df_from_data(raw)
+    print(raw[:10])
     df = get_refined_frame(df)
+    print(df.head(10))
+    df = run(get_name_and_description(df))
     df = clean_dataframe(df)
+    print(df.head(10))
     return df
 
 

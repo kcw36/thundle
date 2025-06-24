@@ -4,3 +4,4 @@ pytest
 pandas
 ipykernel
 beautifulsoup4
+aiohttp
