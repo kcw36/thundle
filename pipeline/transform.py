@@ -2,7 +2,7 @@
 
 from json import loads
 
-from pandas import DataFrame
+from pandas import DataFrame, to_datetime
 
 def get_df_from_data(raw: list[dict]) -> DataFrame:
     """Return dataframe from list of dictionaries."""
@@ -17,6 +17,33 @@ def get_refined_frame(data: DataFrame) -> DataFrame:
         "is_premium", "is_pack", "on_marketplace", "squadron_vehicle", "images"
     ]
     refined = data[cols_to_keep]
+
+    refined["images"] = refined["images"].apply(lambda x: x["image"])
+    refined["event"] = refined["event"].apply(lambda x: True if x else False)
+    refined["release_date"] = to_datetime(refined["release_date"], utc=True)
+
+    vehicle_type_to_mode = {
+        "fighter": "air",
+        "assault": "air",
+        "bomber": "air",
+        "light_tank": "ground",
+        "medium_tank": "ground",
+        "heavy_tank": "ground",
+        "spaa": "ground",
+        "tank_destroyer": "ground",
+        "attack_helicopter": "helicopter",
+        "utility_helicopter": "helicopter",
+        "destroyer": "naval",
+        "battleship": "naval",
+        "light_cruiser": "naval",
+        "heavy_cruiser": "naval",
+        "frigate": "naval",
+        "boat": "naval",
+        "heavy_boat": "naval"
+    }
+    refined["mode"] = refined["vehicle_type"].map(vehicle_type_to_mode)
+
+
     rename_cols = {
         "identifier": "name", "event": "is_event",
         "on_marketplace": "is_marketplace", 

@@ -2,7 +2,6 @@
 """Tests for transform module."""
 
 import pandas as pd
-from pandas.testing import assert_frame_equal
 
 from transform import (
     get_df_from_data,
