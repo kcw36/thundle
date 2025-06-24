@@ -3,9 +3,7 @@ permissions:
 
 name: Code Quality
 on:
-  pull_request:
-    branches:
-      - main
+  push:
   workflow_dispatch:
 jobs:
   build:
