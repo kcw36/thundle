@@ -5,3 +5,6 @@ pandas
 ipykernel
 beautifulsoup4
 aiohttp
+pyarrow
+boto3
+python-dotenv

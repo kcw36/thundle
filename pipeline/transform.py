@@ -137,4 +137,5 @@ async def transform_async(raw: list[dict]) -> DataFrame:
 if __name__ == "__main__":
     with open("example_response.json", "r", encoding="utf-8") as f:
         raw_dict = loads(f.read())
-    print(transform(raw_dict))
+    df = transform(raw_dict)
+    df.to_csv("example_df.csv")
