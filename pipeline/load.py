@@ -58,4 +58,4 @@ if __name__ == "__main__":
     logger.setLevel(INFO)
     logger.addHandler(StreamHandler(stdout))
     load_dotenv()
-    load("/tmp/", read_csv("example_df.csv"))
+    load("/tmp", read_csv("example_df.csv"))
