@@ -1,0 +1,1 @@
+"""Pipeline script from API to parquet files."""

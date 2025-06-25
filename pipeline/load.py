@@ -46,14 +46,15 @@ def load(dir: str, data: DataFrame):
     """Upload data to S3 or locally as partitioned parquet files."""
     logger = getLogger()
     logger.info("Uploading data now...")
-    if dir == "/tmp":
+    if dir == "local":
+        dirs = make_parquet(dir, data)
+    else:
         dirs = make_parquet(dir, data)
         s3 = get_client()
         for d in dirs:
             upload_files(s3, dir, d)
             delete_temporary_files(dir, d)
-    if dir == "local":
-        dirs = make_parquet(dir, data)
+    
 
 
 if __name__ == "__main__":
