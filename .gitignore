@@ -1,4 +1,11 @@
 .venv
+.env
+
 __pycache__
 .pytest_cache
+
 *.json
+
+*.tfvars
+.terraform*
+*.tfstate
