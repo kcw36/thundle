@@ -1,7 +1,6 @@
 permissions:
   contents: read
 
-name: Code Quality
 on:
   push:
   workflow_dispatch:
