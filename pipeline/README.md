@@ -1,5 +1,7 @@
 # Pipeline
 
+This directory provides an ETL pipeline for a community driven API to parquet files in a local or cloud hosted file store.
+
 ## Config
 
 This pipeline relies upon environment variables. For local development I have used a `.env` file:
@@ -8,6 +10,14 @@ AWS_BUCKET=<AWS_BUCKET_NAME>
 AWS_ACCESS_KEY=<ACCESS_KEY_WITH_LOAD_FILE_PERMISSIONS>
 AWS_SECRET_ACCESS_KEY=<SECRET_ACCESS_KEY_WITH_LOAD_FILE_PERMISSIONS>
 ```
+
+## Pipeline Script
+
+This is the core of the project. The script can be ran as a local or cloud deployed variant. The cloud variant requires deployment of the required resources and I have provided terraform infrastructure for that if it is desired. You can differentiate between the two script modes by passing a cli argument of `--mode` for example:
+- Local run: `python pipeline.py --mode local`
+- Cloud run: `python pipeline.py --mode cloud`
+
+The script takes data from a community hosted API and saves that as parquet files to a file store. The parquet files contain such information as object name, description and image for a number of tanks, planes, boats and helicopters.
 
 ## Extract
 

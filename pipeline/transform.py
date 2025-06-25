@@ -1,18 +1,23 @@
 """Module for transforming api response into refined DataFrame."""
 
 from json import loads
-from asyncio import run, gather
+from asyncio import run, gather, Semaphore
 from datetime import datetime
+from logging import getLogger
 
 from bs4 import BeautifulSoup
 from aiohttp import ClientSession
 from pandas import DataFrame, to_datetime, NA
 
+semaphore = Semaphore(5)
 
 async def fetch(session: ClientSession, url: str) -> str:
     """Get async client connection."""
-    async with session.get(url, timeout=30) as resp:
-        return await resp.text()
+    logger = getLogger()
+    logger.info("Fetching information from wiki: %s", url)
+    async with semaphore:
+        async with session.get(url, timeout=30) as resp:
+            return await resp.text()
 
 
 def parse_name(soup: BeautifulSoup) -> str:
