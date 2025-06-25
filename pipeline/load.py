@@ -15,19 +15,19 @@ def get_client() -> client:
     return client('s3')
 
 
-def make_parquet(input_data: DataFrame) -> list[str]:
+def make_parquet(dir_path: str, input_data: DataFrame) -> list[str]:
     """Return list of directories containing parquet files from given DataFrame."""
     logger = getLogger()
     logger.info("Uploading data as parquet to tmp directory.")
-    input_data.to_parquet(path="/tmp/", engine="pyarrow", partition_cols=["mode"])
+    input_data.to_parquet(path=dir_path, engine="pyarrow", partition_cols=["mode"])
     return input_data["mode"].unique().tolist()
 
 
-def upload_files(boto_client: client, mode: str):
+def upload_files(boto_client: client, dir_path: str, mode: str):
     """Walks a directory and uploads all files inside it to S3."""
     logger = getLogger()
-    logger.info("Uploading files to S3 for path: %s.", f"/tmp/mode={mode}")
-    for root, _, files in walk(f"/tmp/mode={mode}"):
+    logger.info("Uploading files to S3 for path: %s.", f"{dir_path}/mode={mode}")
+    for root, _, files in walk(f"{dir_path}/mode={mode}"):
         for file in files:
             if file:
                 boto_client.upload_file(f"{root}/{file}",
@@ -35,20 +35,22 @@ def upload_files(boto_client: client, mode: str):
                                         f"input/mode={mode}/{file}")
 
 
-def delete_temporary_files(dir_path: str):
+def delete_temporary_files(dir_path: str, mode: str):
     """Removes files from given directory."""
     logger = getLogger()
-    logger.info("Deleting files for path: %s.", dir_path)
-    rmtree(f"/tmp/mode={dir_path}")
+    logger.info("Deleting files for path: %s.", mode)
+    rmtree(f"{dir_path}/mode={mode}")
 
 
-def load(data: DataFrame):
+def load(dir: str, data: DataFrame):
     """Upload data to S3 as partitioned parquet files."""
-    dirs = make_parquet(data)
+    logger = getLogger()
+    logger.info("Uploading data now...")
+    dirs = make_parquet(dir, data)
     s3 = get_client()
     for d in dirs:
-        upload_files(s3, d)
-        delete_temporary_files(d)
+        upload_files(s3, dir, d)
+        delete_temporary_files(dir, d)
 
 
 if __name__ == "__main__":
@@ -56,4 +58,4 @@ if __name__ == "__main__":
     logger.setLevel(INFO)
     logger.addHandler(StreamHandler(stdout))
     load_dotenv()
-    load(read_csv("example_df.csv"))
+    load("/tmp/", read_csv("example_df.csv"))

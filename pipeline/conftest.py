@@ -1,7 +1,13 @@
 #pylint: skip-file
 """Fixtures for pipeline tests."""
 
+from moto import mock_aws
+from pandas import DataFrame
 from pytest import fixture
+from boto3 import client
+
+import load as ld
+
 
 @fixture
 def raw_data():
@@ -48,3 +54,26 @@ def required_columns():
         "realistic_ground_br", "is_event", "release_date", "is_premium", 
         "is_pack", "is_marketplace", "is_squadron", "image_url", "mode"
     ]
+
+
+@fixture(scope="module")
+def sample_df():
+    """Simple DataFrame with two partitions (mode=air|land)."""
+    return DataFrame(
+        {
+            "id": [1, 2],
+            "mode": ["air", "land"],
+            "value": [10.5, 20.2],
+        }
+    )
+
+
+@fixture
+def moto_s3():
+    """Spin up a mocked S3 endpoint with a bucket and patch ENV."""
+    with mock_aws():
+        s3 = client("s3", region_name="us-east-1")
+        bucket = "test-bucket"
+        s3.create_bucket(Bucket=bucket)
+        ld.ENV = {"AWS_BUCKET": bucket}
+        yield s3
