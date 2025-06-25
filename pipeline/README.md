@@ -13,3 +13,9 @@
 - The module provides the `transform` method as a collection of its full data transformation.
 - This method groups the data by land, air or sea vehicle and removes any data we are not uploading to AWS.
 - The module also removes any data that is inaccurate or missing key data points we require.
+
+## Load
+
+- `load.py` provides methods for loading the data from the api as a DataFrame into the cloud
+- The module loads the data as partitioned parquet files into three keys made around the object mode
+- The module provides a single entrypoint method `load` which runs it's full suite
