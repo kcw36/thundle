@@ -45,8 +45,8 @@ def delete_temporary_files(dir_path: str, mode: str):
 def delete_if_exists(dir_path: str):
     """Delete local parquet files if they already exist."""
     for d in ["air", "ground", "helicopter", "naval"]:
-            if exists(f"{dir_path}/mode={d}"):
-                delete_temporary_files(dir_path, d)
+        if exists(f"{dir_path}/mode={d}"):
+            delete_temporary_files(dir_path, d)
 
 
 def load(dir_path: str, data: DataFrame):
