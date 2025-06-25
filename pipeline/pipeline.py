@@ -35,7 +35,7 @@ def run():
     mode = get_mode()
     if mode is None:
         raise ValueError("Mode can only be local or cloud.")
-    raw_data = extract(0, 1)
+    raw_data = extract(0, 10)
     cleaned_df = transform(raw_data)
     path_to_dir = None
     if mode == 'local':

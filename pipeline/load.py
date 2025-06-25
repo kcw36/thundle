@@ -1,6 +1,7 @@
 """Module for loading data to cloud storage."""
 
 from os import walk, environ as ENV
+from os.path import exists
 from shutil import rmtree
 from logging import getLogger
 
@@ -41,11 +42,19 @@ def delete_temporary_files(dir_path: str, mode: str):
     rmtree(f"{dir_path}/mode={mode}")
 
 
+def delete_if_exists(dir_path: str):
+    """Delete local parquet files if they already exist."""
+    for d in ["air", "ground", "helicopter", "naval"]:
+            if exists(f"{dir_path}/mode={d}"):
+                delete_temporary_files(dir_path, d)
+
+
 def load(dir_path: str, data: DataFrame):
     """Upload data to S3 or locally as partitioned parquet files."""
     logger = getLogger()
     logger.info("Uploading data now...")
     if dir_path == "local":
+        delete_if_exists(dir_path)
         dirs = make_parquet(dir_path, data)
     else:
         dirs = make_parquet(dir_path, data)
