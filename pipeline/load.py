@@ -43,14 +43,17 @@ def delete_temporary_files(dir_path: str, mode: str):
 
 
 def load(dir: str, data: DataFrame):
-    """Upload data to S3 as partitioned parquet files."""
+    """Upload data to S3 or locally as partitioned parquet files."""
     logger = getLogger()
     logger.info("Uploading data now...")
-    dirs = make_parquet(dir, data)
-    s3 = get_client()
-    for d in dirs:
-        upload_files(s3, dir, d)
-        delete_temporary_files(dir, d)
+    if dir == "/tmp":
+        dirs = make_parquet(dir, data)
+        s3 = get_client()
+        for d in dirs:
+            upload_files(s3, dir, d)
+            delete_temporary_files(dir, d)
+    if dir == "local":
+        dirs = make_parquet(dir, data)
 
 
 if __name__ == "__main__":
@@ -58,4 +61,4 @@ if __name__ == "__main__":
     logger.setLevel(INFO)
     logger.addHandler(StreamHandler(stdout))
     load_dotenv()
-    load("/tmp", read_csv("example_df.csv"))
+    load("local", read_csv("example_df.csv"))
