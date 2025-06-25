@@ -21,6 +21,7 @@ jobs:
         run: |
           find . -name "requirements*.txt" -exec pip install -r {} \;
   lint:
+    needs: build
     name: "Lint code"
     runs-on: ubuntu-latest
     steps:
@@ -37,6 +38,7 @@ jobs:
       - name: "Lint code"
         run: pylint --fail-under=8 **/*.py
   test:
+    needs: build
     name: "Test code"
     runs-on: ubuntu-latest
     steps:
