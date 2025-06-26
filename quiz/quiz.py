@@ -1,0 +1,1 @@
+"""Script for serving a quiz."""
