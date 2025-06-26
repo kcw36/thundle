@@ -166,8 +166,8 @@ def provide_autofill(query: str, options: list[str]):
                          reverse=True)
         for match in matches[:5]:
             st.button(
-                st.session_state["guess"],
+                match,
                 key=match,
                 on_click=update_state,
-                args=("is_premium", match),
+                args=("guess", match),
             )
