@@ -25,14 +25,17 @@ def display_image(url: str):
     )
 
 
-def get_image(url: str) -> Image:
-    """Return image as image file from url."""
-    st.write("Image URL:", url)
-    response = get(url)
-    st.write("Content-Type:", response.headers.get("Content-Type"))
-    st.write("Content-Code:", response.status_code)
-    st.write("Content:", response.content)
-    return Image.open(BytesIO(response.content))
+def get_image(url):
+    headers = {
+        "User-Agent": "Mozilla/5.0",  # look like a browser
+        "Accept": "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+        "Referer": "https://wtvehiclesapi.sgambe.serv00.net/"  # defeats anti-hot-linking
+    }
+    r = get(url, headers=headers, timeout=10)
+    st.write("Status:", r.status_code, "Content-Type:", r.headers.get("Content-Type"))
+    if r.status_code != 200 or "image" not in r.headers.get("Content-Type", ""):
+        raise ValueError("Remote server did not return an image")
+    return Image.open(BytesIO(r.content))
 
 
 def get_blurred_image(_img: Image, blur: int) -> Image:
