@@ -3,16 +3,11 @@
 from json import loads
 from asyncio import run, gather, Semaphore
 from datetime import datetime
-from logging import getLogger, INFO, StreamHandler
-from os import environ as ENV
-from sys import stdout
+from logging import getLogger
 
-from dotenv import load_dotenv
 from bs4 import BeautifulSoup
 from aiohttp import ClientSession
 from pandas import DataFrame, to_datetime, NA
-from cloudinary import config
-from cloudinary.uploader import upload
 
 semaphore = Semaphore(5)
 
@@ -41,7 +36,7 @@ async def fetch_name_and_description(session, identifier):
     """Return name and description from wiki."""
     url = f"https://wiki.warthunder.com/unit/{identifier}"
     logger = getLogger()
-    logger.info(f"Fetching {url}")
+    logger.info("Fetching url: %s", url)
     try:
         html = await fetch(session, url)
         soup = BeautifulSoup(html, "html.parser")
@@ -57,22 +52,6 @@ async def fetch_name_and_description(session, identifier):
             "name": None,
             "description": None
         }
-    
-
-def get_image_api_url(urls: dict) -> str:
-    """Return cloudinary api url for images."""  
-    logger = getLogger()
-    logger.info(f"Uploading image for {urls['image']}")
-
-    config( 
-        cloud_name = ENV["CLOUDINARY_API_NAME"], 
-        api_key = ENV["CLOUDINARY_API_KEY"], 
-        api_secret = ENV["CLOUDINARY_API_SECRET"],
-        secure=True
-    )
-
-    upload_result = upload(urls["image"])
-    return upload_result.get("url")
 
 
 async def get_name_and_description(df: DataFrame) -> DataFrame:
@@ -92,6 +71,16 @@ def get_df_from_data(raw: list[dict]) -> DataFrame:
     return DataFrame(raw)
 
 
+def get_image_url(urls: dict) -> str:
+    """Return url from original url."""
+    img = None
+    if isinstance(urls, dict):
+        img = urls.get("image")
+        img = img.replace("https://www.wtvehiclesapi.sgambe.serv00.net/assets/",
+                          "https://static.encyclopedia.warthunder.com/")
+    return img
+
+
 def get_refined_frame(data: DataFrame) -> DataFrame:
     """Return dataframe with only required data included."""
     cols_to_keep = [
@@ -101,7 +90,7 @@ def get_refined_frame(data: DataFrame) -> DataFrame:
     ]
     refined = data[cols_to_keep].copy()
 
-    refined["images"] = refined["images"].apply(get_image_api_url)
+    refined["images"] = refined["images"].apply(get_image_url)
     refined["event"] = refined["event"].astype(bool)
     refined["release_date"] = to_datetime(refined["release_date"], utc=True)
     refined["release_date"] = refined["release_date"].replace(
@@ -161,9 +150,6 @@ async def transform_async(raw: list[dict]) -> DataFrame:
 
 
 if __name__ == "__main__":
-    getLogger().setLevel(INFO)
-    getLogger().addHandler(StreamHandler(stdout))
-    load_dotenv()
     with open("example_response.json", "r", encoding="utf-8") as f:
         raw_dict = loads(f.read())
     clean_df = transform(raw_dict)
