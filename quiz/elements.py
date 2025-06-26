@@ -10,11 +10,19 @@ from fuzzywuzzy import fuzz
 def display_image(url: str):
     """Display image."""
     img = get_image(url)
+
     if "image" not in st.session_state:
-        st.session_state["image"] = get_blurred_image(img)
+        update_state("image", get_blurred_image(img))
+
     st.image(st.session_state["image"])
-    if st.button("Reveal Image."):
-        st.session_state["image"] = img
+    
+    st.button(
+        "Reveal Image.",
+        key="reveal_image_button",
+        on_click=update_state,
+        args=("image", img),
+    )
+
 
 
 @st.cache_data
