@@ -9,3 +9,4 @@ pyarrow
 boto3
 python-dotenv
 moto[s3]
+cloudinary

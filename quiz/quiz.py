@@ -34,7 +34,7 @@ def serve_quiz():
         else:
             st.warning("Incorrect.")
         st.text(record["name"])
-        st.image(get_image(record["image_url"]))
+        st.image(get_image("https://res.cloudinary.com/dq3acbzdm/image/upload/v1750956913/wnqdqfhyehikpl8lq2n6.png"))
     else:
         col_1, col_2 = st.columns([0.66, 0.33])
         with col_1:
