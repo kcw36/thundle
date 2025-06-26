@@ -30,6 +30,8 @@ def get_image(url: str) -> Image:
     st.write("Image URL:", url)
     response = get(url)
     st.write("Content-Type:", response.headers.get("Content-Type"))
+    st.write("Content-Code:", response.status_code)
+    st.write("Content:", response.content)
     return Image.open(BytesIO(response.content))
 
 
