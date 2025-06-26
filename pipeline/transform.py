@@ -71,13 +71,11 @@ def get_df_from_data(raw: list[dict]) -> DataFrame:
     return DataFrame(raw)
 
 
-def get_image_url(urls: dict) -> str:
+def get_image_url(identifier: str) -> str:
     """Return url from original url."""
     img = None
-    if isinstance(urls, dict):
-        img = urls.get("image")
-        img = img.replace("https://www.wtvehiclesapi.sgambe.serv00.net/assets/",
-                          "https://static.encyclopedia.warthunder.com/")
+    if isinstance(identifier, str):
+        img = f"https://static.encyclopedia.warthunder.com/{identifier}"
     return img
 
 
@@ -90,7 +88,7 @@ def get_refined_frame(data: DataFrame) -> DataFrame:
     ]
     refined = data[cols_to_keep].copy()
 
-    refined["images"] = refined["images"].apply(get_image_url)
+    refined["images"] = refined["identifier"].apply(get_image_url)
     refined["event"] = refined["event"].astype(bool)
     refined["release_date"] = to_datetime(refined["release_date"], utc=True)
     refined["release_date"] = refined["release_date"].replace(
