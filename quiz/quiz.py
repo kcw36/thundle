@@ -4,6 +4,7 @@ import streamlit as st
 
 from data import get_data, get_random_record
 from elements import (display_image,
+                      get_image,
                       display_bool_buttons,
                       display_guess_input,
                       provide_autofill,
@@ -32,13 +33,15 @@ def serve_quiz():
             st.success("Correct.")
         else:
             st.warning("Incorrect.")
-
-    col_1, col_2 = st.columns([0.66, 0.33])
-    with col_1:
-        display_image(record["image_url"])
-    with col_2:
-        display_complex_buttons(record)
-    display_bool_buttons(record)
+        st.text(record["name"])
+        st.image(get_image(record["image_url"]))
+    else:
+        col_1, col_2 = st.columns([0.66, 0.33])
+        with col_1:
+            display_image(record["image_url"])
+        with col_2:
+            display_complex_buttons(record)
+        display_bool_buttons(record)
 
 
 if __name__ == "__main__":

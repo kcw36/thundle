@@ -157,8 +157,9 @@ def provide_autofill(query: str, options: list[str]):
                          key=lambda x: fuzz.ratio(x[:i], query.lower()),
                          reverse=True)
         for match in matches[:5]:
-            if st.button(match):
-                st.session_state["guess"] = match
-                st.rerun()
-                query = match
-                st.success(f"You selected: {match}")
+            st.button(
+                st.session_state["guess"],
+                key="guess",
+                on_click=update_state,
+                args=("is_premium", match),
+            )
