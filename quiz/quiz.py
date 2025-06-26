@@ -14,6 +14,8 @@ def serve_quiz():
     data = get_data(mode="ground")
     record = get_random_record(data)
 
+    if "score" not in st.session_state:
+        st.session_state["score"] = 100
     if "guess" not in st.session_state:
         st.session_state["guess"] = ""
 
@@ -23,6 +25,7 @@ def serve_quiz():
         provide_autofill(query, data["name"].unique())
     with col_2:
         submit = st.button(label="→")
+        st.text(f"Points\n{str(st.session_state["score"])}")
 
     if submit:
         if query.lower() == record["name"].lower():

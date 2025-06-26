@@ -7,38 +7,38 @@ from PIL import Image, ImageFilter
 import streamlit as st
 from fuzzywuzzy import fuzz
 
+
 def display_image(url: str):
     """Display image."""
     img = get_image(url)
 
     if "image" not in st.session_state:
-        update_state("image", get_blurred_image(img))
+        update_state("image", get_blurred_image(img, 100))
 
     st.image(st.session_state["image"])
-    
+
     st.button(
         "Reveal Image.",
         key="reveal_image_button",
         on_click=update_state,
-        args=("image", img),
+        args=("image", get_blurred_image(img, 10), 35),
     )
 
 
-
-@st.cache_data
 def get_image(url: str) -> Image:
     """Return image as image file from url."""
     return Image.open(BytesIO(get(url).content))
 
 
-@st.cache_data
-def get_blurred_image(_img: Image) -> Image:
+def get_blurred_image(_img: Image, blur: int) -> Image:
     """Return blurred image as image file from url."""
-    return _img.filter(ImageFilter.GaussianBlur(radius=10))
+    return _img.filter(ImageFilter.GaussianBlur(radius=blur))
 
 
-def update_state(key, value):
+def update_state(key: str, value, score: int=None):
     st.session_state[key] = value
+    if score:
+        st.session_state["score"] -= score
 
 
 def display_complex_buttons(record: dict):
@@ -58,28 +58,28 @@ def display_complex_buttons(record: dict):
         st.session_state["country"],
         key="country_button",
         on_click=update_state,
-        args=("country", str(record["country"])),
+        args=("country", str(record["country"]), 10),
     )
 
     st.button(
         st.session_state["vehicle_type"],
         key="vehicle_type_button",
         on_click=update_state,
-        args=("vehicle_type", str(record["vehicle_type"])),
+        args=("vehicle_type", str(record["vehicle_type"]), 10),
     )
 
     st.button(
         st.session_state["br"],
         key="br_button",
         on_click=update_state,
-        args=("br", str(record["realistic_ground_br"])),
+        args=("br", str(record["realistic_ground_br"]), 10),
     )
 
     st.button(
         st.session_state["release"],
         key="release_button",
         on_click=update_state,
-        args=("release", record["release_date"].strftime(r"%B %d, %Y")),
+        args=("release", record["release_date"].strftime(r"%B %d, %Y"), 10),
     )
 
 
@@ -104,7 +104,7 @@ def display_bool_buttons(record: dict):
             st.session_state["is_event"],
             key="event_button",
             on_click=update_state,
-            args=("is_event", str(record["is_event"])),
+            args=("is_event", str(record["is_event"]), 5),
         )
 
     with col_2:
@@ -112,7 +112,7 @@ def display_bool_buttons(record: dict):
             st.session_state["is_marketplace"],
             key="marketplace_button",
             on_click=update_state,
-            args=("is_marketplace", str(record["is_marketplace"])),
+            args=("is_marketplace", str(record["is_marketplace"]), 5),
         )
 
     with col_3:
@@ -120,7 +120,7 @@ def display_bool_buttons(record: dict):
             st.session_state["is_premium"],
             key="premium_button",
             on_click=update_state,
-            args=("is_premium", str(record["is_premium"])),
+            args=("is_premium", str(record["is_premium"]), 5),
         )
 
     with col_4:
@@ -128,7 +128,7 @@ def display_bool_buttons(record: dict):
             st.session_state["is_pack"],
             key="pack_button",
             on_click=update_state,
-            args=("is_pack", str(record["is_pack"])),
+            args=("is_pack", str(record["is_pack"]), 5),
         )
 
     with col_5:
@@ -136,7 +136,7 @@ def display_bool_buttons(record: dict):
             st.session_state["is_squadron"],
             key="squadron_button",
             on_click=update_state,
-            args=("is_squadron", str(record["is_squadron"])),
+            args=("is_squadron", str(record["is_squadron"]), 5),
         )
 
 
@@ -145,7 +145,7 @@ def display_guess_input() -> str:
     query = st.text_input(label="guess",
                           placeholder="Guess...",
                           label_visibility="collapsed",
-                          value=st.session_state["guess"] )
+                          value=st.session_state["guess"])
     return query
 
 
