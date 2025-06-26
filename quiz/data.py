@@ -1,6 +1,7 @@
 """Module for serving quiz data."""
 
 from datetime import date, timedelta
+from hashlib import sha256
 
 from pandas import DataFrame, read_parquet
 from streamlit import cache_data
@@ -18,6 +19,6 @@ def get_data(mode: str) -> DataFrame:
 def get_random_record(data: DataFrame) -> dict:
     """Return random record determined by date from dataframe."""
     now = date.today().isoformat()
-    hash_now = int(hash(now))
+    hash_now = int(sha256(now.encode()).hexdigest(), 16)
     index = hash_now % len(data)
     return data.iloc[index].to_dict()
