@@ -15,7 +15,7 @@ def get_data(mode: str) -> DataFrame:
     return mode_df
 
 
-@cache_data(ttl=timedelta(days=1))
+@cache_data()
 def get_random_record(data: DataFrame) -> dict:
     """Return random record determined by date from dataframe."""
     now = date.today().isoformat()
