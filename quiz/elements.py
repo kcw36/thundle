@@ -27,7 +27,10 @@ def display_image(url: str):
 
 def get_image(url: str) -> Image:
     """Return image as image file from url."""
-    return Image.open(BytesIO(get(url).content))
+    st.write("Image URL:", url)
+    response = get(url)
+    st.write("Content-Type:", response.headers.get("Content-Type"))
+    return Image.open(BytesIO(response.content))
 
 
 def get_blurred_image(_img: Image, blur: int) -> Image:
