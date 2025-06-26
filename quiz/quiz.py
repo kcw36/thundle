@@ -34,11 +34,11 @@ def serve_quiz():
         else:
             st.warning("Incorrect.")
         st.text(record["name"])
-        st.image(get_image(record["image_url"]))
+        st.image(get_image("https://static.encyclopedia.warthunder.com/images/a-20g.png"))
     else:
         col_1, col_2 = st.columns([0.66, 0.33])
         with col_1:
-            display_image(record["image_url"])
+            display_image("https://static.encyclopedia.warthunder.com/images/a-20g.png")
         with col_2:
             display_complex_buttons(record)
         display_bool_buttons(record)
