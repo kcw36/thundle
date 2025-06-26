@@ -32,8 +32,8 @@ def get_image(url):
         "Referer": "https://wtvehiclesapi.sgambe.serv00.net/"  # defeats anti-hot-linking
     }
     r = get(url, headers=headers, timeout=10)
-    st.write("Status:", r.status_code, "Content-Type:", r.headers.get("Content-Type"))
     if r.status_code != 200 or "image" not in r.headers.get("Content-Type", ""):
+        st.write("Status:", r.status_code, "Content-Type:", r.headers.get("Content-Type"))
         raise ValueError("Remote server did not return an image")
     return Image.open(BytesIO(r.content))
 

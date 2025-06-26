@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 from aiohttp import ClientSession
 from pandas import DataFrame, to_datetime, NA
 
-semaphore = Semaphore(5)
+semaphore = Semaphore(1)
 
 async def fetch(session: ClientSession, url: str) -> str:
     """Get async client connection."""
@@ -71,14 +71,6 @@ def get_df_from_data(raw: list[dict]) -> DataFrame:
     return DataFrame(raw)
 
 
-def get_image_url(identifier: str) -> str:
-    """Return url from original url."""
-    img = None
-    if isinstance(identifier, str):
-        img = f"https://static.encyclopedia.warthunder.com/{identifier}"
-    return img
-
-
 def get_refined_frame(data: DataFrame) -> DataFrame:
     """Return dataframe with only required data included."""
     cols_to_keep = [
@@ -88,7 +80,7 @@ def get_refined_frame(data: DataFrame) -> DataFrame:
     ]
     refined = data[cols_to_keep].copy()
 
-    refined["images"] = refined["identifier"].apply(get_image_url)
+    refined["images"] = "https://static.encyclopedia.warthunder.com/images/" + refined["identifier"]
     refined["event"] = refined["event"].astype(bool)
     refined["release_date"] = to_datetime(refined["release_date"], utc=True)
     refined["release_date"] = refined["release_date"].replace(
@@ -126,7 +118,7 @@ def get_refined_frame(data: DataFrame) -> DataFrame:
 def clean_dataframe(data: DataFrame) -> DataFrame:
     """Return cleaned dataframe without empty or invalid data points."""
     data = data.replace({None: NA})
-    return data.dropna(how="any")
+    return data.dropna(how="any", subset=["name", "image_url"])
 
 
 def transform(raw: list[dict]) -> DataFrame:

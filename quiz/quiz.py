@@ -34,7 +34,6 @@ def serve_quiz():
         else:
             st.warning("Incorrect.")
         st.text(record["name"])
-        st.text[record["url"]]
         st.image(get_image(record["image_url"]))
     else:
         col_1, col_2 = st.columns([0.66, 0.33])
