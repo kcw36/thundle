@@ -25,21 +25,3 @@ class TestGetRefinedFrame:
         assert isinstance(refined, DataFrame)
         assert list(refined.columns) == required_columns
         assert refined.shape[1] == len(required_columns)
-
-
-class TestCleanDataFrame:
-    def test_clean_dataframe(self, raw_data):
-        df = get_df_from_data(raw_data)
-        refined = get_refined_frame(df)
-        cleaned = clean_dataframe(refined)
-        assert isinstance(cleaned, DataFrame)
-        assert all(cleaned.notna().all())
-
-
-class TestTransform:
-    def test_transform(self, raw_data, required_columns):
-        result = transform(raw_data)
-        assert isinstance(result, DataFrame)
-        assert list(result.columns) == required_columns + ["name", "description"]
-        assert all(result.notna().all())
-

@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 from aiohttp import ClientSession
 from pandas import DataFrame, to_datetime, NA
 
-semaphore = Semaphore(1)
+semaphore = Semaphore(5)
 
 async def fetch(session: ClientSession, url: str) -> str:
     """Get async client connection."""
@@ -35,8 +35,7 @@ def parse_desc(soup: BeautifulSoup) -> str:
 async def fetch_name_and_description(session, identifier):
     """Return name and description from wiki."""
     url = f"https://wiki.warthunder.com/unit/{identifier}"
-    logger = getLogger()
-    logger.info("Fetching url: %s", url)
+    print(f"Fetching {url}")
     try:
         html = await fetch(session, url)
         soup = BeautifulSoup(html, "html.parser")
