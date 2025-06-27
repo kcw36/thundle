@@ -22,8 +22,8 @@ def serve_quiz():
 
     col_1, col_2 = st.columns([0.9, 0.1])
     with col_1:
-        query = display_guess_input()
-        provide_autofill(query, data["name"].unique())
+        query = display_guess_input("guess")
+        provide_autofill("guess", query, data["name"].unique())
     with col_2:
         submit = st.button(label="→")
         st.text(f"Points\n{str(st.session_state["score"])}")

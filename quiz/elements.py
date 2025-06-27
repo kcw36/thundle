@@ -25,6 +25,25 @@ def display_image(url: str):
     )
 
 
+def get_cropped_image(_img: Image, zoom_factor: int) -> Image:
+    """Return zoomed image using factor."""
+    w, h = _img.size
+    crop_w = w // zoom_factor
+    crop_h = h // zoom_factor
+
+    # Calculate crop box centered on the image
+    left = (w - crop_w) // 2
+    upper = (h - crop_h) // 2
+    right = left + crop_w
+    lower = upper + crop_h
+
+    cropped = _img.crop((left, upper, right, lower))
+
+    # Resize back to original size for display purposes
+    zoomed = cropped.resize((w, h), Image.LANCZOS)
+    return zoomed
+
+
 def get_image(url):
     headers = {
         "User-Agent": "Mozilla/5.0",  # look like a browser
@@ -148,16 +167,16 @@ def display_bool_buttons(record: dict):
         )
 
 
-def display_guess_input() -> str:
+def display_guess_input(guess_key: str) -> str:
     """Display guess input with autocomplete suggestions."""
     query = st.text_input(label="guess",
                           placeholder="Guess...",
                           label_visibility="collapsed",
-                          value=st.session_state["guess"])
+                          value=st.session_state[guess_key])
     return query
 
 
-def provide_autofill(query: str, options: list[str]):
+def provide_autofill(key: str, query: str, options: list[str]):
     """Provide guess input autofill options."""
     if query:
         i = len(query)
@@ -169,5 +188,44 @@ def provide_autofill(query: str, options: list[str]):
                 match,
                 key=match,
                 on_click=update_state,
-                args=("guess", match),
+                args=(key, match),
             )
+
+
+def display_zoom_increment_submit(guess: str, target: str, 
+                                  zoom_factor_key: str,
+                                  zoom_image_key: str, img: Image) -> bool | None:
+    """Provide zoom increment on incorrect input and return False when the game is over."""
+    count = st.session_state.get("zoom_attempts_count", 0) + 1
+    update_state("zoom_attempts_count", count)
+
+    zoom_factor = st.session_state.get(zoom_factor_key, 0)
+    clicked = display_submit_button()
+
+    if clicked:
+        if guess == target:
+            update_state(zoom_factor_key, 1)
+            st.toast("Correct!")
+            return False
+        
+        elif zoom_factor == 1:
+            update_state(zoom_factor_key, 1)
+            st.toast("You Lose.")
+            return False
+
+        # Decrement zoom factor first
+        new_zoom = zoom_factor - 1
+        update_state(zoom_factor_key, new_zoom)
+
+        # Update image with new zoom
+        zoomed_img = get_cropped_image(img, new_zoom)
+        update_state(zoom_image_key, zoomed_img)
+
+        st.toast("Incorrect, try again.")
+    return True
+
+
+def display_submit_button() -> bool:
+    """Display a simple submit button."""
+    return st.button(label="→")
+        
