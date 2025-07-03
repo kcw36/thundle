@@ -56,11 +56,7 @@ async def root(mode: str = "all"):
     return data[hash_i]
 
 
-@app.get("/vehicles")
+@app.get("/vehicles", response_model=list[Vehicle])
 async def root(mode: str = "all", limit: int = 10):
-    return {
-        "message": {
-            "mode": mode,
-            "limit": limit
-        }
-    }
+    documents = get_objects(mode, limit)
+    return documents

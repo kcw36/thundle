@@ -43,6 +43,26 @@ def get_objects(mode: str) -> list[dict]:
     return documents
 
 
+def get_objects(mode: str, limit: int = None) -> list[dict]:
+    """Return list of objects for given game mode within limit, if present."""
+    logger = getLogger()
+    logger.info("Getting objects from MongoDB for game mode: %s...", mode)
+    collection = get_collection("vehicles")
+
+    if mode == "all":
+        query = {}
+    else:
+        query = { "mode": mode }
+
+    if limit:
+        documents = list(collection.find(query).limit(limit))
+    else:
+        documents = list(collection.find(query))
+
+    logger.info("Found documents, listing first result:\n %s", documents[0])
+    return documents
+
+
 def cache_document(doc: dict):
     """Upload random selection for today's date to MongoDB."""
     logger = getLogger()
