@@ -1,3 +1,4 @@
 pytest
 pylint
-fastapi[standard]
+fastapi
+pymongo[srv]==3.12
