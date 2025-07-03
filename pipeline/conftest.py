@@ -46,7 +46,7 @@ def raw_data():
 @fixture
 def required_columns():
     return [
-        "identifier", "country", "vehicle_type", "tier", "realistic_br", 
+        "_id", "country", "vehicle_type", "tier", "realistic_br", 
         "realistic_ground_br", "is_event", "release_date", "is_premium", 
         "is_pack", "is_marketplace", "is_squadron", "image_url", "mode"
     ]
