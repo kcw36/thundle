@@ -29,20 +29,6 @@ def get_date_hash_index(n: int) -> int:
     return hash_now % n
 
 
-def get_objects(mode: str) -> list[dict]:
-    """Return list of objects for given game mode."""
-    logger = getLogger()
-    logger.info("Getting objects from MongoDB for game mode: %s...", mode)
-    collection = get_collection("vehicles")
-    if mode == "all":
-        query = {}
-    else:
-        query = { "mode": mode }
-    documents = list(collection.find(query))
-    logger.info("Found documents, listing first result:\n %s", documents[0])
-    return documents
-
-
 def get_objects(mode: str, limit: int = None) -> list[dict]:
     """Return list of objects for given game mode within limit, if present."""
     logger = getLogger()
@@ -63,24 +49,30 @@ def get_objects(mode: str, limit: int = None) -> list[dict]:
     return documents
 
 
-def cache_document(doc: dict):
+def cache_document(doc: dict, mode: str = "all"):
     """Upload random selection for today's date to MongoDB."""
     logger = getLogger()
     logger.info("Caching document...")
     collection = get_collection("cache")
     doc["date"] = date.today().strftime(r"%d/%m/%Y")
+    doc["data_set"] = mode
     collection.insert_one(doc)
 
 
-def get_doc_from_cache() -> dict:
+def get_doc_from_cache(mode: str = "all") -> dict:
     """Return cached object for today's date if it is present."""
     logger = getLogger()
     logger.info("Checking cache for document...")
     collection = get_collection("cache")
-    query = { "date": date.today().strftime(r"%d/%m/%Y") }
-    document = list(collection.find(query))[0]
-    logger.info("Found document in cache: %s", document)
-    return document
+    query = { 
+        "date": date.today().strftime(r"%d/%m/%Y"),
+        "data_set": mode
+    }
+    document = list(collection.find(query))
+    if document:
+        logger.info("Found document in cache: %s", document[0])
+        return document
+    return None
 
 
 if __name__ == "__main__":

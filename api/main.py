@@ -2,6 +2,7 @@
 
 from logging import getLogger, StreamHandler, INFO
 from sys import stdout
+from datetime import datetime
 
 from fastapi import FastAPI, HTTPException
 from dotenv import load_dotenv
@@ -19,7 +20,7 @@ class Vehicle(BaseModel):
     realistic_br: float
     realistic_ground_br: float
     is_event: bool
-    release_date: str
+    release_date: datetime | None
     is_premium: bool
     is_pack: bool
     is_marketplace: bool
@@ -27,7 +28,7 @@ class Vehicle(BaseModel):
     image_url: HttpUrl
     mode: str = ["ground", "air", "naval", "helicopter"]
     name: str
-    description: str
+    description: str | None
 
 
 app = FastAPI()
@@ -83,12 +84,12 @@ async def root():
 async def root(mode: str = "all"):
     if not validate_mode(mode):
         raise HTTPException(status_code=400, detail="Mode value not accepted.")
-    document = get_doc_from_cache()
+    document = get_doc_from_cache(mode)
     if document:
         return document
     data = get_objects(mode)
     hash_i = get_date_hash_index(len(data))
-    cache_document(data[hash_i])
+    cache_document(data[hash_i], mode)
     return data[hash_i]
 
 
