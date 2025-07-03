@@ -42,14 +42,14 @@ async def fetch_name_and_description(session, identifier):
         html = await fetch(session, url)
         soup = BeautifulSoup(html, "html.parser")
         return {
-            "identifier": identifier,
+            "_id": identifier,
             "name": parse_name(soup),
             "description": parse_desc(soup)
         }
     except Exception as e:
         print(f"Error fetching {url}: {e.with_traceback()}")
         return {
-            "identifier": identifier,
+            "_id": identifier,
             "name": None,
             "description": None
         }
@@ -57,13 +57,13 @@ async def fetch_name_and_description(session, identifier):
 
 async def get_name_and_description(df: DataFrame) -> DataFrame:
     """Return name and description added to dataframe."""
-    identifiers = df["identifier"].tolist()
+    identifiers = df["_id"].tolist()
     async with ClientSession() as session:
         tasks = [fetch_name_and_description(session, ident) for ident in identifiers]
         results = await gather(*tasks)
 
     result_df = DataFrame(results)
-    df = df.merge(result_df, on="identifier", how="left")
+    df = df.merge(result_df, on="_id", how="left")
     return df
 
 
