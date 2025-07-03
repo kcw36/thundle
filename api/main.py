@@ -3,17 +3,18 @@
 from logging import getLogger, StreamHandler, INFO
 from sys import stdout
 from datetime import datetime
+from typing import Literal
 
 from fastapi import FastAPI, HTTPException
 from dotenv import load_dotenv
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel, HttpUrl, Field
 
 from data import (get_date_hash_index, get_objects,
                   cache_document, get_doc_from_cache)
 
 
 class Vehicle(BaseModel):
-    _id: str
+    _id: str = Field(alias='_id')
     country: str
     vehicle_type: str
     tier: int
@@ -26,9 +27,12 @@ class Vehicle(BaseModel):
     is_marketplace: bool
     is_squadron: bool
     image_url: HttpUrl
-    mode: str = ["ground", "air", "naval", "helicopter"]
+    mode: Literal["ground", "air", "naval", "helicopter"]
     name: str
     description: str | None
+
+    class Config:
+        allow_population_by_field_name = True
 
 
 app = FastAPI()
@@ -90,7 +94,8 @@ async def root(mode: str = "all"):
     data = get_objects(mode)
     hash_i = get_date_hash_index(len(data))
     cache_document(data[hash_i], mode)
-    return data[hash_i]
+    logger.info("Random vehicle is: %s", Vehicle(**data[hash_i]))
+    return Vehicle(**data[hash_i])
 
 
 @app.get("/vehicles", response_model=list[Vehicle])
@@ -100,4 +105,4 @@ async def root(mode: str = "all", limit: int = 10):
     if not validate_limit(limit):
         raise HTTPException(status_code=400, detail="Limit value not accepted.")
     documents = get_objects(mode, limit)
-    return documents
+    return [Vehicle(**doc) for doc in documents]

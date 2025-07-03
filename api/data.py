@@ -71,7 +71,7 @@ def get_doc_from_cache(mode: str = "all") -> dict:
     document = list(collection.find(query))
     if document:
         logger.info("Found document in cache: %s", document[0])
-        return document
+        return document[0]
     return None
 
 
