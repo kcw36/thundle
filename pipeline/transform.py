@@ -4,6 +4,7 @@ from json import loads
 from asyncio import run, gather, Semaphore
 from datetime import datetime
 from logging import getLogger
+from re import sub
 
 from bs4 import BeautifulSoup
 from aiohttp import ClientSession
@@ -24,7 +25,7 @@ def parse_name(soup: BeautifulSoup) -> str:
     """Parse name from soup."""
     tag = soup.find("div", class_="game-unit_name")
     name = tag.text.strip() if tag else None
-    return name.lstrip("␗") if name else None
+    return strip_leading_nonalpha(name) if name else None
 
 
 def parse_desc(soup: BeautifulSoup) -> str:
@@ -65,6 +66,11 @@ async def get_name_and_description(df: DataFrame) -> DataFrame:
     result_df = DataFrame(results)
     df = df.merge(result_df, on="_id", how="left")
     return df
+
+
+def strip_leading_nonalpha(text: str) -> str:
+    """Return string with leading icon chars removed."""
+    return sub(r'^[^\w]+', '', text)
 
 
 def get_df_from_data(raw: list[dict]) -> DataFrame:
