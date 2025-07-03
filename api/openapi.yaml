@@ -1,0 +1,71 @@
+openapi: 3.0.4
+info:
+  title: Thundle Internal API
+  version: 0.1.1
+
+paths:
+  /home:
+    get:
+      summary: Returns a random vehicle determined by today's date.
+      responses:
+        "200":
+          description: A JSON array of fields and values.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    _id: 
+                      type: string
+                      description: Vehicle ID.
+                    country:
+                      type: string
+                      description: Country of origin.
+                    vehicle_type:
+                      type: string
+                      description: Type of vehicle.
+                    tier:
+                      type: integer
+                      description: Vehicle tier level.
+                    realistic_br:
+                      type: number
+                      format: float
+                      description: Realistic battle rating.
+                    realistic_ground_br:
+                      type: number
+                      format: float
+                      description: Realistic ground battle rating.
+                    is_event:
+                      type: boolean
+                      description: Whether the vehicle is from an event.
+                    release_date:
+                      type: string
+                      format: date-time
+                      description: Date the vehicle was released.
+                    is_premium:
+                      type: boolean
+                      description: Whether the vehicle is premium.
+                    is_pack:
+                      type: boolean
+                      description: Whether the vehicle is part of a purchasable pack.
+                    is_marketplace:
+                      type: boolean
+                      description: Whether the vehicle is tradable on the marketplace.
+                    is_squadron:
+                      type: boolean
+                      description: Whether the vehicle is a squadron vehicle.
+                    image_url:
+                      type: string
+                      format: uri
+                      description: URL to the vehicle's static image.
+                    mode:
+                      type: string
+                      description: Game mode (e.g. air, ground, naval).
+                    name:
+                      type: string
+                      description: Full name of the vehicle.
+                    description:
+                      type: string
+                      description: Short description of the vehicle.

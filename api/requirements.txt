@@ -2,3 +2,4 @@ pytest
 pylint
 fastapi
 pymongo[srv]==3.12
+pydantic

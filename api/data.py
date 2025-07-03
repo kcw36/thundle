@@ -38,8 +38,9 @@ def get_objects(mode: str) -> list[dict]:
         query = {}
     else:
         query = { "mode": mode }
-    documents = collection.find(query)
-    return list(documents)
+    documents = list(collection.find(query))
+    logger.info("Found documents, listing first result:\n %s", documents[0])
+    return documents
 
 
 def cache_document(doc: dict):
@@ -47,17 +48,19 @@ def cache_document(doc: dict):
     logger = getLogger()
     logger.info("Caching document...")
     collection = get_collection("cache")
-    doc["date"] = date.today()
+    doc["date"] = date.today().strftime(r"%d/%m/%Y")
     collection.insert_one(doc)
 
 
-def check_cache() -> dict:
+def get_doc_from_cache() -> dict:
     """Return cached object for today's date if it is present."""
     logger = getLogger()
     logger.info("Checking cache for document...")
     collection = get_collection("cache")
-    query = { "date": date.today() }
-    return collection.find(query)
+    query = { "date": date.today().strftime(r"%d/%m/%Y") }
+    document = list(collection.find(query))[0]
+    logger.info("Found document in cache: %s", document)
+    return document
 
 
 if __name__ == "__main__":
