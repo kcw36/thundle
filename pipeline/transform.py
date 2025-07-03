@@ -111,7 +111,8 @@ def get_refined_frame(data: DataFrame) -> DataFrame:
         "event": "is_event",
         "on_marketplace": "is_marketplace", 
         "squadron_vehicle": "is_squadron", 
-        "images": "image_url", "era": "tier"
+        "images": "image_url", "era": "tier",
+        "identifier": "_id"
     }
     return refined.rename(columns=rename_cols)
 
@@ -144,4 +145,4 @@ if __name__ == "__main__":
     with open("example_response.json", "r", encoding="utf-8") as f:
         raw_dict = loads(f.read())
     clean_df = transform(raw_dict)
-    clean_df.to_csv("example_df.csv")
+    clean_df.to_csv("example_df.csv", index_label="_id")
