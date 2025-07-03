@@ -1,12 +1,8 @@
 #pylint: skip-file
 """Fixtures for pipeline tests."""
 
-from moto import mock_aws
 from pandas import DataFrame
 from pytest import fixture
-from boto3 import client
-
-import load as ld
 
 
 @fixture
@@ -68,12 +64,24 @@ def sample_df():
     )
 
 
+@fixture(autouse=True)
+def _set_env(monkeypatch):
+    """Populate required env vars for the module."""
+    monkeypatch.setenv("DB_CONN_STRING", "mongodb://example.com")
+    monkeypatch.setenv("DB_NAME", "test_db")
+    monkeypatch.setenv("DB_COLLECTION", "vehicles")
+    
+
 @fixture
-def moto_s3():
-    """Spin up a mocked S3 endpoint with a bucket and patch ENV."""
-    with mock_aws():
-        s3 = client("s3", region_name="us-east-1")
-        bucket = "test-bucket"
-        s3.create_bucket(Bucket=bucket)
-        ld.ENV = {"AWS_BUCKET": bucket}
-        yield s3
+def sample_df():
+    return DataFrame(
+        [
+            {"_id": "a-20g", "country": "USA", "tier": 2},
+            {"_id": "f-16c", "country": "USA", "tier": 7},
+        ]
+    )
+
+
+@fixture
+def sample_docs(sample_df):
+    return sample_df.to_dict(orient="records")

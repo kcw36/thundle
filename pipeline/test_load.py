@@ -1,86 +1,100 @@
-#pylint: skip-file
-"""Tests for load module."""
+# pylint: skip-file
+"""Unit tests for the load module (uploading to MongoDB)."""
 
-from boto3 import client
+from unittest.mock import MagicMock, patch
 
-import load as ld
-
-
-class TestMakeParquet:
-    """Group of tests for make parquet method."""
-    def test_creates_partition_dirs_and_returns_modes(self,
-                                                      sample_df,
-                                                      tmp_path):
-        """Test that make parquet creates expected files."""
-        # Act
-        modes = ld.make_parquet(tmp_path, sample_df)
-
-        # Assert
-        expected_dirs = {tmp_path / f"mode={m}" for m in modes}
-        for d in expected_dirs:
-            assert d.exists() and d.is_dir()
-            assert any(p.suffix == ".parquet" for p in d.iterdir())
-
-        assert set(modes) == {"air", "land"}
+from load import get_json, upload_files, insert_document, load
 
 
+# ---------------------------------------------------------------------------
+# Tests for get_json
+# ---------------------------------------------------------------------------
+class TestGetJson:
+    def test_returns_list_length(self, sample_df):
+        docs = get_json(sample_df)
+        assert isinstance(docs, list)
+        assert len(docs) == len(sample_df)
+
+    def test_contents_match(self, sample_df):
+        expected = sample_df.to_dict(orient="records")
+        assert get_json(sample_df) == expected
+
+
+# ---------------------------------------------------------------------------
+# Tests for insert_document
+# ---------------------------------------------------------------------------
+class TestInsertDocument:
+    def test_inserts_when_not_exists(self):
+        col = MagicMock()
+        col.find_one.return_value = None  # simulate missing document
+        doc = {"_id": "a-20g"}
+
+        inserted = insert_document(col, doc)
+
+        col.insert_one.assert_called_once_with(doc)
+        assert inserted is True
+
+    def test_skips_when_exists(self):
+        col = MagicMock()
+        col.find_one.return_value = {"_id": "a-20g"}  # already exists
+        doc = {"_id": "a-20g"}
+
+        inserted = insert_document(col, doc)
+
+        col.insert_one.assert_not_called()
+        assert inserted is False
+
+
+# ---------------------------------------------------------------------------
+# Tests for upload_files
+# ---------------------------------------------------------------------------
 class TestUploadFiles:
-    """Group of tests for upload files method."""
-    def test_uploads_all_files_from_partition_dir(self,
-                                                  moto_s3,
-                                                  tmp_path):
-        """Test that upload files loads expected files."""
-        # Arrange
-        part_dir = tmp_path / "mode=air"
-        part_dir.mkdir(parents=True)
-        sample_file = part_dir / "part-0000.parquet"
-        sample_file.write_bytes(b"dummy parquet data")
+    def test_uploads_each_document(self, sample_docs):
+        # Mock collection and mongo hierarchy
+        collection = MagicMock()
+        mongo = MagicMock()
+        mongo.__getitem__.return_value = collection  # mongo[DB_NAME] -> collection
+        mongo.address = ("example.com", 27017)
 
-        # Act
-        ld.upload_files(moto_s3, tmp_path, "air")
+        # Patch insert_document to count calls
+        with patch("load.insert_document", return_value=True) as mock_insert:
+            upload_files(mongo, sample_docs)
+            assert mock_insert.call_count == len(sample_docs)
 
-        objects = moto_s3.list_objects_v2(Bucket=ld.ENV["AWS_BUCKET"])
-        keys = [o["Key"] for o in objects.get("Contents", [])]
+    def test_handles_empty_input(self):
+        collection = MagicMock()
+        mongo = MagicMock()
+        mongo.__getitem__.return_value = collection
+        mongo.address = ("example.com", 27017)
 
-        # Assert
-        assert f"input/mode=air/{sample_file.name}" in keys
-
-
-class TestDeleteTemporaryFiles:
-    """Group of tests for remove temporary files method."""
-    def test_removes_partition_directory(self, tmp_path):
-        """Test that delete temporary files removes files."""
-        # Arrange
-        d = tmp_path / "mode=land"
-        d.mkdir(parents=True)
-        (d / "dummy.txt").write_text("data")
-
-        # Act
-        ld.delete_temporary_files(tmp_path, "land")
-        
-        # Assert
-        assert not d.exists()
+        with patch("load.insert_document", return_value=True) as mock_insert:
+            upload_files(mongo, [])
+            mock_insert.assert_not_called()
 
 
-class TestLoadIntegration:
-    """Group of tests for load integration method."""
-    def test_full_flow_creates_and_uploads_then_cleans(self, 
-                                                       sample_df, 
-                                                       moto_s3, 
-                                                       tmp_path,
-                                                       monkeypatch):
-        """Test that load method correctly uploads and deletes files."""
-        # Arrange
-        monkeypatch.setattr(ld, "client", client)
+# ---------------------------------------------------------------------------
+# Tests for load (integration of helpers)
+# ---------------------------------------------------------------------------
+class TestLoad:
+    """Collection of tests for load method."""
 
-        # Act
-        ld.load(tmp_path, sample_df)
-        objs = moto_s3.list_objects_v2(Bucket=ld.ENV["AWS_BUCKET"])
-        uploaded = sorted(o["Key"] for o in objs.get("Contents", []))
+    def test_load_calls_helpers(self, sample_df):
+        """Test that load calls correct methods."""
+        mock_client = MagicMock()
+        with patch("load.get_client", MagicMock(return_value=mock_client)) as mock_get_client,\
+            patch("load.upload_files", MagicMock()) as mock_upload:
+            load(sample_df)
+            mock_get_client.assert_called_once()
+        expected_docs = sample_df.to_dict(orient="records")
+        assert mock_upload.call_args[0][0] == mock_client
+        assert mock_upload.call_args[0][1] == expected_docs
 
-        # Assert
-        assert not (tmp_path / "mode=air").exists()
-        assert not (tmp_path / "mode=land").exists()
-        assert uploaded
-        assert any("input/mode=air" in k for k in uploaded)
-        assert any("input/mode=land" in k for k in uploaded)
+
+    @patch("load.upload_files", MagicMock())
+    def test_load_passes_dataframe_intact(self, sample_df):
+
+        # Spy on get_json via patch.object
+        with patch("load.get_json", wraps=get_json) as spy_get_json,\
+            patch("load.get_client", MagicMock(return_value=MagicMock())):
+            load(sample_df)
+            spy_get_json.assert_called_once_with(sample_df)

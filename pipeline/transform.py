@@ -81,7 +81,7 @@ def get_refined_frame(data: DataFrame) -> DataFrame:
     ]
     refined = data[cols_to_keep].copy()
 
-    refined["images"] = f"https://static.encyclopedia.warthunder.com/images/{refined["identifier"]}.png"
+    refined["images"] = "https://static.encyclopedia.warthunder.com/images/" + refined["identifier"] + ".png"
     refined["event"] = refined["event"].astype(bool)
     refined["release_date"] = to_datetime(refined["release_date"], utc=True)
     refined["release_date"] = refined["release_date"].replace(
