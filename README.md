@@ -1,6 +1,6 @@
 # thundle
 
-This repository contains an ETL pipeline and frontend code for a wordle like quiz where the focus is guessing war thunder vehicles. There are several directories in this repository that each serve a unique function. Also to utilise the resources in this repository the user will need to install several dependancies first.
+This repository contains an ETL pipeline, an internal API and frontend for a wordle like quiz where the focus is guessing war thunder vehicles. There are several directories in this repository that each serve a unique function. Also, to utilise the resources in this repository the user will need to install several dependencies first.
 
 ## Installation
 
@@ -58,8 +58,12 @@ This directory provides terraform config for deploying the project infrastructur
 
 ### Pipeline
 
-This directory provides and ETL pipeline from a community driven API to parquet files. This resource can be driven locally or utilise cloud resources depending on user commands. INstructions on how to use this directory in full are found in that sub level README.
+This directory provides and ETL pipeline from a community driven API to MongoDB. Instructions on how to use this directory in full are found in that sub level README.
 
-### Quiz
+### API
 
-This directory provides a quiz frontend and backend. The quiz can pull from local parquet files or cloud deployed files depending on user commands when it is setup. 
+This directory provides the internal API that queries the MongoDB directory and provides REST endpoints for the quiz frontend to use.
+
+### Quiz [IN PROGRESS]
+
+This directory provides a quiz frontend. The quiz uses the local API to serve a collection of webpages with quizzes.

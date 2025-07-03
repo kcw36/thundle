@@ -1,23 +1,23 @@
 # Pipeline
 
-This directory provides an ETL pipeline for a community driven API to parquet files in a local or cloud hosted file store.
+This directory provides an ETL pipeline for a community driven API to a MongoDB collection in the cloud.
 
 ## Config
 
 This pipeline relies upon environment variables. For local development I have used a `.env` file:
 ```sh
-AWS_BUCKET=<AWS_BUCKET_NAME>
-AWS_ACCESS_KEY=<ACCESS_KEY_WITH_LOAD_FILE_PERMISSIONS>
-AWS_SECRET_ACCESS_KEY=<SECRET_ACCESS_KEY_WITH_LOAD_FILE_PERMISSIONS>
+DB_CONN_STRING=<MONGO_CONNECTION_STRING>
+DB_NAME=<NAME_OF_DB_IN_MONGO>
+DB_COLLECTION=<NAME_OF_COLLECTION_IN_DATABASE>
 ```
 
 ## Pipeline Script
 
-This is the core of the project. The script can be ran as a local or cloud deployed variant. The cloud variant requires deployment of the required resources and I have provided terraform infrastructure for that if it is desired. You can differentiate between the two script modes by passing a cli argument of `--mode` for example:
-- Local run: `python pipeline.py --mode local`
-- Cloud run: `python pipeline.py --mode cloud`
+This is the core of the project. The script can be ran across the pages of the community API it takes from. As of writing that API has 10 pages of data on it's main endpoint we query. You can differentiate between target pages by defining them in the start and end options.
+- First Page Run: `python pipeline.py --start 0 --end 1`
+- Multiple Page Run: `python pipeline.py --start 0 --end 10`
 
-The script takes data from a community hosted API and saves that as parquet files to a file store. The parquet files contain such information as object name, description and image for a number of tanks, planes, boats and helicopters.
+The script takes data from a community hosted API and saves that as documents inside of MongoDB. The documents contain such information as object name, description and image url for a number of tanks, planes, boats and helicopters.
 
 ## Extract
 
@@ -30,13 +30,27 @@ The script takes data from a community hosted API and saves that as parquet file
 
 - `transform.py` provides methods for transforming data from the api into an expected data format being a DataFrame.
 - The module provides the `transform` method as a collection of its full data transformation.
-- This method groups the data by land, air or sea vehicle and removes any data we are not uploading to AWS.
+- This method groups the data by land, air or sea vehicle and removes any data we are not uploading to MongoDB.
 - The module also removes any data that is inaccurate or missing key data points we require.
+- The module scrapes the [War Thunder Wiki](https://wiki.warthunder.com/) for human friendly names and descriptions for users.
 - Run `python extract.py` to save an example transformed DataFrame as a csv file named `example_df.csv`.
 
 ## Load
 
-- `load.py` provides methods for loading the data from the api as a DataFrame into the cloud.
-- The module loads the data as partitioned parquet files into three keys made around the object mode.
+- `load.py` provides methods for loading the data from the api as a DataFrame into MongoDB.
+- The module loads the data as json documents into MongoDB.
+- On each upload the module checks for duplicate _id values and on duplication skips the current document.
 - The module provides a single entrypoint method `load` which runs it's full suite.
-- Run `python load.py` to load an example subset of data to an S3 bucket defined in environment.
+- Run `python load.py` to load an example subset of data to a MongoDB instance defined in your .env file.
+
+# Tests
+
+Each module and script in this directory has an associated test file with the naming convetnion of `test_<MODULE_NAME>.py`. To run these tests ensure pytest is installed which if you followed my installation steps it will be.
+
+Then run:
+
+`pytest -vvx`
+
+ OR
+
+`pytest <TARGET-TEST-FILE> -vvx`

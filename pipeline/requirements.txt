@@ -5,7 +5,5 @@ pandas
 ipykernel
 beautifulsoup4
 aiohttp
-pyarrow
-boto3
 python-dotenv
 pymongo[srv]==3.12
