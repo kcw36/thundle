@@ -11,6 +11,7 @@ from extract import extract
 from transform import transform
 from load import load
 
+
 def set_logger() -> Logger:
     """Set root logger."""
     logger = getLogger()
@@ -27,6 +28,7 @@ def get_args() -> Namespace:
     parser.add_argument('--start', '-s', type=int, required=True)
     parser.add_argument('--end', '-e', type=int, required=True)
     return parser.parse_args()
+
 
 def run():
     """Run the pipeline."""
