@@ -1,7 +1,8 @@
 """Module for loading data to cloud storage."""
 
 from os import environ as ENV
-from logging import getLogger
+from logging import getLogger, INFO, StreamHandler
+from sys import stdout
 
 from pandas import DataFrame, read_csv
 from dotenv import load_dotenv
@@ -56,5 +57,8 @@ def load(data: DataFrame):
 
 if __name__ == "__main__":
     load_dotenv()
+    logger = getLogger()
+    logger.setLevel(INFO)
+    logger.addHandler(StreamHandler(stdout))
     data = read_csv("example_df.csv")
     load(data)
