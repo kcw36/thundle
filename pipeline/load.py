@@ -8,6 +8,20 @@ from logging import getLogger
 from pandas import DataFrame, read_csv
 from boto3 import client
 from dotenv import load_dotenv
+from pymongo.mongo_client import MongoClient
+from pymongo.server_api import ServerApi
+
+
+def test_connection():
+    """Test connection to mongo db server."""
+    # Create a new client and connect to the server
+    client = MongoClient(ENV["DB_CONN_STRING"], server_api=ServerApi('1'))
+    # Send a ping to confirm a successful connection
+    try:
+        client.admin.command('ping')
+        print("Pinged your deployment. You successfully connected to MongoDB!")
+    except Exception as e:
+        print(e)
 
 
 def get_client() -> client:
@@ -66,4 +80,4 @@ def load(dir_path: str, data: DataFrame):
 
 if __name__ == "__main__":
     load_dotenv()
-    load("local", read_csv("example_df.csv"))
+    test_connection()
