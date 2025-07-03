@@ -3,14 +3,27 @@
 from os import environ as ENV
 from hashlib import sha256
 from datetime import date
+from logging import getLogger
 
 from dotenv import load_dotenv
 from pymongo.mongo_client import MongoClient
+from pymongo.collection import Collection
 from pymongo.server_api import ServerApi
+
+
+def get_collection(name: str = "vehicles") -> Collection:
+    """Return collection for MongoDB."""
+    logger = getLogger()
+    logger.info("Getting MongoDB connection...")
+    mongo = MongoClient(ENV["DB_CONN_STRING"], server_api=ServerApi('1'))
+    db = mongo[ENV["DB_NAME"]]
+    return db[name]
 
 
 def get_date_hash_index(n: int) -> int:
     """Return index for an iterable of length n selected by date hash."""
+    logger = getLogger()
+    logger.info("Finding date based list index for list of size %s...", n)
     now = date.today().isoformat()
     hash_now = int(sha256(now.encode()).hexdigest(), 16)
     return hash_now % n
@@ -18,15 +31,33 @@ def get_date_hash_index(n: int) -> int:
 
 def get_objects(mode: str) -> list[dict]:
     """Return list of objects for given game mode."""
-    mongo = MongoClient(ENV["DB_CONN_STRING"], server_api=ServerApi('1'))
-    db = mongo[ENV["DB_NAME"]]
-    collection = db["vehicles"]
+    logger = getLogger()
+    logger.info("Getting objects from MongoDB for game mode: %s...", mode)
+    collection = get_collection("vehicles")
     if mode == "all":
         query = {}
     else:
         query = { "mode": mode }
     documents = collection.find(query)
     return list(documents)
+
+
+def cache_document(doc: dict):
+    """Upload random selection for today's date to MongoDB."""
+    logger = getLogger()
+    logger.info("Caching document...")
+    collection = get_collection("cache")
+    doc["date"] = date.today()
+    collection.insert_one(doc)
+
+
+def check_cache() -> dict:
+    """Return cached object for today's date if it is present."""
+    logger = getLogger()
+    logger.info("Checking cache for document...")
+    collection = get_collection("cache")
+    query = { "date": date.today() }
+    return collection.find(query)
 
 
 if __name__ == "__main__":
