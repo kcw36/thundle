@@ -1,6 +1,6 @@
 """Pipeline script from API to parquet files."""
 
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from sys import stdout
 from logging import (getLogger, Logger, INFO,
                      StreamHandler)
@@ -18,31 +18,31 @@ def set_logger() -> Logger:
     logger.addHandler(StreamHandler(stdout))
 
 
-def get_mode() -> str:
+def get_args() -> Namespace:
     """Return local or cloud mode."""
     parser = ArgumentParser(
         prog="Pipeline Script",
         description="ETL pipeline for war thunder API"
     )
-    parser.add_argument('--mode', '-m', choices=['local', 'cloud'], required=True)
-    nspace = parser.parse_args()
-    return nspace.mode
-
+    parser.add_argument('--start', '-s', type=int, required=True)
+    parser.add_argument('--end', '-e', type=int, required=True)
+    return parser.parse_args()
 
 def run():
     """Run the pipeline."""
     set_logger()
-    mode = get_mode()
-    if mode is None:
-        raise ValueError("Mode can only be local or cloud.")
-    raw_data = extract(0, 10)
+    args = get_args()
+    start = args.start
+    end = args.end
+    if start is None:
+        raise ValueError("Need a start value.")
+    if end is None:
+        raise ValueError("Need an end value.")
+    if start < 0:
+        raise ValueError("Start cannot be below 0.")
+    raw_data = extract(start, end)
     cleaned_df = transform(raw_data)
-    path_to_dir = None
-    if mode == 'local':
-        path_to_dir = 'local'
-    elif mode =='cloud':
-        path_to_dir = '/tmp'
-    load(path_to_dir, cleaned_df)
+    load(cleaned_df)
 
 
 if __name__ == "__main__":
