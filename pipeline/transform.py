@@ -23,13 +23,15 @@ async def fetch(session: ClientSession, url: str) -> str:
 def parse_name(soup: BeautifulSoup) -> str:
     """Parse name from soup."""
     tag = soup.find("div", class_="game-unit_name")
-    return tag.text.strip() if tag else None
+    name = tag.text.strip() if tag else None
+    return name.lstrip("␗") if name else None
 
 
 def parse_desc(soup: BeautifulSoup) -> str:
     """Parse description from soup."""
     tag = soup.find("div", class_="content-markdown")
-    return tag.text.strip() if tag else None
+    desc = tag.text.strip() if tag else None
+    return desc.replace("␗", "") if desc else None
 
 
 async def fetch_name_and_description(session, identifier):
@@ -79,7 +81,7 @@ def get_refined_frame(data: DataFrame) -> DataFrame:
     ]
     refined = data[cols_to_keep].copy()
 
-    refined["images"] = "https://static.encyclopedia.warthunder.com/images/" + refined["identifier"]
+    refined["images"] = f"https://static.encyclopedia.warthunder.com/images/{refined["identifier"]}.png"
     refined["event"] = refined["event"].astype(bool)
     refined["release_date"] = to_datetime(refined["release_date"], utc=True)
     refined["release_date"] = refined["release_date"].replace(

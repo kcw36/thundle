@@ -1,83 +1,60 @@
 """Module for loading data to cloud storage."""
 
-from os import walk, environ as ENV
-from os.path import exists
-from shutil import rmtree
+from os import environ as ENV
 from logging import getLogger
 
 from pandas import DataFrame, read_csv
-from boto3 import client
 from dotenv import load_dotenv
 from pymongo.mongo_client import MongoClient
+from pymongo.collection import Collection
 from pymongo.server_api import ServerApi
 
 
-def test_connection():
-    """Test connection to mongo db server."""
-    # Create a new client and connect to the server
-    client = MongoClient(ENV["DB_CONN_STRING"], server_api=ServerApi('1'))
-    # Send a ping to confirm a successful connection
-    try:
-        client.admin.command('ping')
-        print("Pinged your deployment. You successfully connected to MongoDB!")
-    except Exception as e:
-        print(e)
-
-
-def get_client() -> client:
-    """Return S3 client."""
-    return client('s3')
-
-
-def make_parquet(dir_path: str, input_data: DataFrame) -> list[str]:
-    """Return list of directories containing parquet files from given DataFrame."""
+def get_client() -> MongoClient:
+    """Return Mongo client."""
     logger = getLogger()
-    logger.info("Uploading data as parquet to %s directory.", dir_path)
-    input_data.to_parquet(path=dir_path, engine="pyarrow", partition_cols=["mode"])
-    return input_data["mode"].unique().tolist()
+    logger.info("Getting client connection to MongoDB...")
+    return MongoClient(ENV["DB_CONN_STRING"], server_api=ServerApi('1'))
 
 
-def upload_files(boto_client: client, dir_path: str, mode: str):
-    """Walks a directory and uploads all files inside it to S3."""
+def upload_files(mongo: MongoClient, documents: list[dict]):
+    """Upload all documents for MongoDB."""
     logger = getLogger()
-    logger.info("Uploading files to S3 for path: %s.", f"{dir_path}/mode={mode}")
-    for root, _, files in walk(f"{dir_path}/mode={mode}"):
-        for file in files:
-            if file:
-                boto_client.upload_file(f"{root}/{file}",
-                                        ENV["AWS_BUCKET"],
-                                        f"input/mode={mode}/{file}")
+    logger.info("Uploading documents to MongoDB: %s.", mongo.address)
+    db = mongo[ENV["DB_NAME"]]
+    collection = db[ENV["DB_COLLECTION"]]
+    for doc in documents:
+        insert_document(collection, doc)
 
 
-def delete_temporary_files(dir_path: str, mode: str):
-    """Removes files from given directory."""
+def insert_document(col: Collection, doc: dict):
+    """Insert document if id does not already exist."""
     logger = getLogger()
-    logger.info("Deleting files for path: %s.", mode)
-    rmtree(f"{dir_path}/mode={mode}")
+    if col.find_one({"_id": doc["_id"]}) is None:
+        logger.info("Uploading document to MongoDB: %s.", doc['_id'])
+        col.insert_one(doc)
+        return True
+    logger.info("Document with _id %s already exists.", doc['_id'])
+    return False
 
 
-def delete_if_exists(dir_path: str):
-    """Delete local parquet files if they already exist."""
-    for d in ["air", "ground", "helicopter", "naval"]:
-        if exists(f"{dir_path}/mode={d}"):
-            delete_temporary_files(dir_path, d)
-
-
-def load(dir_path: str, data: DataFrame):
-    """Upload data to S3 or locally as partitioned parquet files."""
+def get_json(df: DataFrame) -> list[dict]:
+    """Return list of json objects."""
     logger = getLogger()
-    logger.info("Uploading data now...")
-    if dir_path == "local":
-        delete_if_exists(dir_path)
-        dirs = make_parquet(dir_path, data)
-    else:
-        dirs = make_parquet(dir_path, data)
-        s3 = get_client()
-        for d in dirs:
-            upload_files(s3, dir_path, d)
-            delete_temporary_files(dir_path, d)
+    logger.info("Converting dataframe to list of dictionaries...")
+    return df.to_dict(orient="records")
+    
+
+def load(data: DataFrame):
+    """Upload data to MongoDB."""
+    logger = getLogger()
+    logger.info("Starting load phase...")
+    mongo = get_client()
+    json = get_json(data)
+    upload_files(mongo, json)
 
 
 if __name__ == "__main__":
     load_dotenv()
-    test_connection()
+    data = read_csv("example_df.csv")
+    load(data)
