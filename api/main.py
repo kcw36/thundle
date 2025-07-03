@@ -3,7 +3,7 @@
 from logging import getLogger, StreamHandler, INFO
 from sys import stdout
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from dotenv import load_dotenv
 from pydantic import BaseModel, HttpUrl
 
@@ -25,7 +25,7 @@ class Vehicle(BaseModel):
     is_marketplace: bool
     is_squadron: bool
     image_url: HttpUrl
-    mode: str
+    mode: str = ["ground", "air", "naval", "helicopter"]
     name: str
     description: str
 
@@ -38,15 +38,51 @@ logger.setLevel(INFO)
 logger.addHandler(StreamHandler(stdout))
 
 
+def validate_mode(mode: str) -> bool:
+    """Return true if mode is an accepted value."""
+    if isinstance(mode, str):
+        return mode in ["all", "ground", "air", "naval", "helicopter"]
+    return False
+
+
+def validate_limit(limit: int) -> bool:
+    """Return true if limit is an accepted value."""
+    if isinstance(limit, int):
+        return limit > 0
+    return False
+
+
 @app.get("/")
 async def root():
     return {
-        "message": "Hello World"
+        "message": "Welcome to the Thundle Internal API",
+        "version": "0.1.1",
+        "endpoints": {
+            "/vehicles": {
+                "description": "Get a list of vehicle entries based on mode and limit.",
+                "params": {
+                    "mode": "all | ground | air | naval | helicopter (default: all)",
+                    "limit": "Positive integer (default: 10)"
+                },
+                "returns": "List of vehicle objects"
+            },
+            "/random": {
+                "description": "Get a single vehicle based on today's date (pseudo-random).",
+                "params": {
+                    "mode": "all | ground | air | naval | helicopter (default: all)"
+                },
+                "returns": "A single vehicle object"
+            }
+        },
+        "docs": "/docs",
+        "openapi_schema": "/openapi.json"
     }
 
 
 @app.get("/random", response_model=Vehicle)
 async def root(mode: str = "all"):
+    if not validate_mode(mode):
+        raise HTTPException(status_code=400, detail="Mode value not accepted.")
     document = get_doc_from_cache()
     if document:
         return document
@@ -58,5 +94,9 @@ async def root(mode: str = "all"):
 
 @app.get("/vehicles", response_model=list[Vehicle])
 async def root(mode: str = "all", limit: int = 10):
+    if not validate_mode(mode):
+        raise HTTPException(status_code=400, detail="Mode value not accepted.")
+    if not validate_limit(limit):
+        raise HTTPException(status_code=400, detail="Limit value not accepted.")
     documents = get_objects(mode, limit)
     return documents
