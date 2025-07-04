@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from pydantic import BaseModel, HttpUrl, Field
 
@@ -36,6 +37,19 @@ class Vehicle(BaseModel):
 
 
 app = FastAPI()
+
+origins = [
+    "http://localhost:5173"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["GET"],
+    allow_headers=["*"]
+)
+
 load_dotenv()
 
 logger = getLogger()
