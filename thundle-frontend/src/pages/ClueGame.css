@@ -1,7 +1,7 @@
 /* container */
 .clue-game-container {
   position: relative;
-  max-width: 680px;
+  width: 50vw;
   margin: 0 auto;
   padding: 1.25rem;
   background: #0e1525;
@@ -72,21 +72,23 @@
 /* grid */
 .clue-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   grid-auto-rows: 120px;
   gap: 0.75rem;
 }
 
-/* specific spans */
+/* name */
 .name-card {
-  grid-column: 1 / -1;
-  height: 100px;
+  grid-column: span 2;
   font-size: 1.2rem;
   letter-spacing: 2px;
 }
 
-.description-card { grid-column: 1 / -1; }
-.image-card       { grid-row: span 2; }
+/* image */
+.image-card { 
+  grid-row: span 3;
+  grid-column: span 2; 
+}
 
 /* card */
 .clue-card {
