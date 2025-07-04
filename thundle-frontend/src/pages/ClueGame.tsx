@@ -23,6 +23,11 @@ export interface Vehicle {
   description: string;
 }
 
+export interface VehicleOption {
+  _id: string;
+  name: string;
+}
+
 /* 10 clues */
 type ClueKey =
   | "name"
@@ -55,6 +60,7 @@ const API_BASE = import.meta.env.VITE_THUNDLE_API ?? "";
 export default function ClueGame() {
   const nav = useNavigate();
 
+  const [vehicleOptions, setVehicleNames] = useState<VehicleOption[]>([]);
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [points, setPoints] = useState(MAX_POINTS);
   const [guess, setGuess] = useState("");
@@ -86,6 +92,20 @@ export default function ClueGame() {
       }
     }
     fetchVehicle();
+  }, []);
+
+  useEffect(() => {
+    async function fetchAllNames() {
+      try {
+        const { data } = await axios.get<VehicleOption[]>(`${API_BASE}/names`, {
+          params: { mode: "ground" },
+        });
+        setVehicleNames(data);
+      } catch (err) {
+        console.error("Could not load vehicle names for autocomplete:", err);
+      }
+    }
+    fetchAllNames();
   }, []);
 
   /* Reveal a clue */
@@ -124,6 +144,11 @@ export default function ClueGame() {
       </button>
 
       {/* Guess bar */}
+      <datalist id="vehicle-options">
+          {vehicleOptions.map((vehicle) => (
+            <option key={vehicle._id} value={vehicle.name} />
+          ))}
+      </datalist>
       <div className="guess-bar">
         <input
           className="guess-input"
@@ -131,6 +156,7 @@ export default function ClueGame() {
           value={guess}
           onChange={(e) => setGuess(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleGuess()}
+          list="vehicle-options"
         />
         <button className="guess-submit" onClick={handleGuess}>
           →
