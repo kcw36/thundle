@@ -126,7 +126,7 @@ function BlurGame() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white p-4">
-      <h1 className="text-3xl font-bold mb-4">Tank Guessing Game</h1>
+      <h1 className="text-3xl font-bold mb-4">Blurdle: Tank</h1>
 
       <div className="w-full max-w-lg">
         <div className="w-full aspect-video overflow-hidden border border-gray-700 rounded-lg">
