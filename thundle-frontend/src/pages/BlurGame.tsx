@@ -11,6 +11,7 @@ import {
   useState,
 } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 // ────────────────────────────────────────────────────────────
 // 🔸 Types ───────────────────────────────────────────────────
@@ -64,7 +65,7 @@ const BLUR_LEVELS = [
 
 const guessesAllowed = BLUR_LEVELS.length - 1;
 
-function App() {
+function BlurGame() {
   const [blurIndex, setBlurIndex] = useState(0);
   const [guess, setGuess] = useState("");
   const [message, setMessage] = useState("");
@@ -72,6 +73,7 @@ function App() {
   const [correctAnswer, setCorrectAnswer] = useState("");
   const [imageUrl, setImageUrl] = useState();
   const [vehicleOptions, setVehicleNames] = useState<VehicleOption[]>([]);
+  const navigate = useNavigate();
 
    useEffect(() => {
     async function fetchVehicle() {
@@ -160,9 +162,16 @@ function App() {
         </datalist>
 
         {message && <p className="mt-4 text-center text-lg">{message}</p>}
+
+        <button
+            onClick={() => navigate("/")}
+            className="absolute top-4 left-4 bg-gray-800 text-white px-3 py-1 rounded hover:bg-gray-700 transition"
+        >
+            ← Return to Home
+        </button>
       </div>
     </div>
   );
 }
 
-export default App;
+export default BlurGame;
