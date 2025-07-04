@@ -3,7 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import "./ModeSelector.css"; // tiny flex row
 
 const modes = ["all", "ground", "air", "naval", "helicopter"] as const;
-type Mode = (typeof modes)[number];
 
 export default function ModeSelector({ game }: { game: "blur-game" | "clue-game" }) {
   const navigate = useNavigate();
