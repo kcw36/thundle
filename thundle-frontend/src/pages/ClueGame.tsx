@@ -127,7 +127,7 @@ export default function ClueGame() {
       }
     }
     fetchAllNames();
-  }, []);
+  }, [mode]);
 
   /* Reveal a clue */
   const reveal = (key: ClueKey) => {

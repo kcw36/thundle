@@ -119,7 +119,7 @@ function BlurGame() {
       }
     }
     fetchAllNames();
-  }, []);
+  }, [mode]);
 
   const handleGuess = () => {
     const cleanGuess = guess.trim().toLowerCase();
