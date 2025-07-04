@@ -51,10 +51,10 @@ const API_BASE = import.meta.env.VITE_THUNDLE_API ?? "";
 // ────────────────────────────────────────────────────────────
 
 const BLUR_LEVELS = [
-  "blur-[40px]",
-  "blur-[30px]",
-  "blur-[20px]",
-  "blur-[10px]",
+  "blur-10px",
+  "blur-7-5px",
+  "blur-5px",
+  "blur-2-5px",
   "blur-none"
 ];
 
@@ -66,16 +66,14 @@ function App() {
   const [message, setMessage] = useState("");
   const [imageLoaded, setImageLoaded] = useState(false);
   const [correctAnswer, setCorrectAnswer] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
+  const [imageUrl, setImageUrl] = useState(null);
 
    useEffect(() => {
     async function fetchVehicle() {
       try {
         console.log("Fetching vehicle response...");
         const response = await axios.get(`${API_BASE}/random`, { params: { mode: "ground" } });
-        console.log("Fetched vehicle response:", response);
         const data = response.data;
-        console.log("Fetched vehicle data:", data);
         setCorrectAnswer(data.name.toLowerCase());
         setImageUrl(data.image_url);
       } catch (error) {
@@ -97,6 +95,7 @@ function App() {
         setBlurIndex(blurIndex + 1);
         setMessage("Incorrect. Try again.");
       } else {
+        setBlurIndex(blurIndex + 1);
         setMessage(`Out of guesses! The answer was: ${correctAnswer}`);
       }
     }
@@ -128,7 +127,7 @@ function App() {
           <button
             onClick={handleGuess}
             className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700"
-            disabled={!imageLoaded || blurIndex >= BLUR_LEVELS.length - 1}
+            disabled={!imageLoaded || blurIndex > BLUR_LEVELS.length - 1}
           >
             Guess
           </button>

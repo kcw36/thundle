@@ -5,6 +5,30 @@
   text-align: center;
 }
 
+.blur-10px {
+  filter: blur(10px);
+}
+
+.blur-7-5px {
+  filter: blur(7.5px);
+}
+
+.blur-5px {
+  filter: blur(5px);
+}
+
+.blur-2-5px {
+  filter: blur(2.5px);
+}
+
+.blur-none {
+  filter: none;
+}
+
+img {
+  transition: filter 0.5s ease;
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;
