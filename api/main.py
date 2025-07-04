@@ -120,3 +120,11 @@ async def root(mode: str = "all", limit: int = 10):
         raise HTTPException(status_code=400, detail="Limit value not accepted.")
     documents = get_objects(mode, limit)
     return [Vehicle(**doc) for doc in documents]
+
+
+@app.get("/names", response_model=list[str])
+async def root(mode: str = "all"):
+    if not validate_mode(mode):
+        raise HTTPException(status_code=400, detail="Mode value not accepted.")
+    documents = get_objects(mode)
+    return [doc.get("name") for doc in documents]

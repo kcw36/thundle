@@ -1,7 +1,6 @@
 /*
- * Adapted React frontend for the **Thundle Internal API**.
+ * React frontend for the **Thundle Internal API**.
  * -------------------------------------------------------
- * - Replaces the static `movies` dataset with live data from the FastAPI backend.
  * - Uses Axios to talk to `/random` and `/vehicles` endpoints.
  * - Keeps the existing modal/layout/notification structure so your current
  *   components continue to work with minimal changes.
@@ -66,7 +65,7 @@ function App() {
   const [message, setMessage] = useState("");
   const [imageLoaded, setImageLoaded] = useState(false);
   const [correctAnswer, setCorrectAnswer] = useState("");
-  const [imageUrl, setImageUrl] = useState(null);
+  const [imageUrl, setImageUrl] = useState();
 
    useEffect(() => {
     async function fetchVehicle() {
