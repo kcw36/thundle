@@ -4,8 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Menu from "./pages/Menu";
 import BlurGame from "./pages/BlurGame";
 import ClueGame from "./pages/ClueGame";
-import "./index.css";
-import "./pages/BlurGame.css";
+import "./index.css"
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

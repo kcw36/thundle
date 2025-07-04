@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import "./ClueGame.css"
 
 function ClueGame() {
     const navigate = useNavigate();
