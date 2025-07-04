@@ -5,8 +5,6 @@
  * - Keeps the existing modal/layout/notification structure so your current
  *   components continue to work with minimal changes.
  */
-
-import { DateTime } from "luxon";
 import {
   useEffect,
   useState,
@@ -72,9 +70,11 @@ const guessesAllowed = BLUR_LEVELS.length - 1;
 
 function BlurGame() {
   const { mode = "all" } = useParams<"mode">();
-  const frankfurtDate = DateTime.now().setZone("Europe/Berlin").toISODate();
+  const berlinTime = new Date().toLocaleDateString("en-CA", {
+    timeZone: "Europe/Berlin", // Use Frankfurt's timezone
+  });
   const [blurIndex, setBlurIndex] = usePersistentState<number>(
-    `blur-${mode}-index-${frankfurtDate}`,
+    `blur-${mode}-index-${berlinTime}`,
     0
   );
   const [guess, setGuess]         = useState("");

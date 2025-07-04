@@ -1,4 +1,3 @@
-import { DateTime } from "luxon";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -79,9 +78,11 @@ const API_BASE = import.meta.env.VITE_THUNDLE_API ?? "";
 export default function ClueGame() {
   const nav = useNavigate();
   const { mode = "all" } = useParams<"mode">();
-  const frankfurtDate = DateTime.now().setZone("Europe/Berlin").toISODate();
-  const pointsKey = `clue-${mode}-points-${frankfurtDate}`;
-  const revealedKey = `clue-${mode}-revealed-${frankfurtDate}`;
+    const berlinTime = new Date().toLocaleDateString("en-CA", {
+    timeZone: "Europe/Berlin", // Use Frankfurt's timezone
+  });
+  const pointsKey = `clue-${mode}-points-${berlinTime}`;
+  const revealedKey = `clue-${mode}-revealed-${berlinTime}`;
 
   const [vehicleOptions, setVehicleNames] = useState<VehicleOption[]>([]);
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
