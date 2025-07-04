@@ -4,6 +4,7 @@ from logging import getLogger, StreamHandler, INFO
 from sys import stdout
 from datetime import datetime
 from typing import Literal
+from bson import ObjectId
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,7 +16,7 @@ from data import (get_date_hash_index, get_objects,
 
 
 class Vehicle(BaseModel):
-    _id: str = Field(alias='_id')
+    id: str = Field(alias='_id')
     country: str
     vehicle_type: str
     tier: int
@@ -34,6 +35,20 @@ class Vehicle(BaseModel):
 
     class Config:
         allow_population_by_field_name = True
+        populate_by_name = True
+        json_encoders = {ObjectId: str}
+        orm_mode = True
+
+
+class VehicleOption(BaseModel):
+    id: str = Field(alias="_id")
+    name: str
+
+    class Config:
+        allow_population_by_field_name = True
+        populate_by_name = True
+        json_encoders = {ObjectId: str}
+        orm_mode = True
 
 
 app = FastAPI()
@@ -109,6 +124,7 @@ async def root(mode: str = "all"):
     hash_i = get_date_hash_index(len(data))
     cache_document(data[hash_i], mode)
     logger.info("Random vehicle is: %s", Vehicle(**data[hash_i]))
+    data[hash_i]["_id"] = str(data[hash_i]["_id"])
     return Vehicle(**data[hash_i])
 
 
@@ -119,12 +135,16 @@ async def root(mode: str = "all", limit: int = 10):
     if not validate_limit(limit):
         raise HTTPException(status_code=400, detail="Limit value not accepted.")
     documents = get_objects(mode, limit)
+    for v in documents:
+        v["_id"] = str(v["_id"])
     return [Vehicle(**doc) for doc in documents]
 
 
-@app.get("/names", response_model=list[str])
+@app.get("/names", response_model=list[VehicleOption])
 async def root(mode: str = "all"):
     if not validate_mode(mode):
         raise HTTPException(status_code=400, detail="Mode value not accepted.")
     documents = get_objects(mode)
-    return [doc.get("name") for doc in documents]
+    for v in documents:
+        v["_id"] = str(v["_id"])
+    return [VehicleOption(**doc) for doc in documents]

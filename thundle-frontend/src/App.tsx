@@ -35,6 +35,11 @@ export interface Vehicle {
   description: string;
 }
 
+export interface VehicleOption {
+  _id: string;
+  name: string;
+}
+
 // ────────────────────────────────────────────────────────────
 // 🔸 Environment & Helpers ──────────────────────────────────
 // ────────────────────────────────────────────────────────────
@@ -66,6 +71,7 @@ function App() {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [correctAnswer, setCorrectAnswer] = useState("");
   const [imageUrl, setImageUrl] = useState();
+  const [vehicleOptions, setVehicleNames] = useState<VehicleOption[]>([]);
 
    useEffect(() => {
     async function fetchVehicle() {
@@ -81,6 +87,20 @@ function App() {
       }
     }
     fetchVehicle();
+  }, []);
+
+  useEffect(() => {
+    async function fetchAllNames() {
+      try {
+        const { data } = await axios.get<VehicleOption[]>(`${API_BASE}/names`, {
+          params: { mode: "ground" },
+        });
+        setVehicleNames(data);
+      } catch (err) {
+        console.error("Could not load vehicle names for autocomplete:", err);
+      }
+    }
+    fetchAllNames();
   }, []);
 
   const handleGuess = () => {
@@ -118,6 +138,7 @@ function App() {
         <div className="mt-4 flex gap-2">
           <input
             type="text"
+            list="vehicle-options"
             value={guess}
             onChange={(e) => setGuess(e.target.value)}
             className="flex-1 px-4 py-2 text-black rounded"
@@ -131,6 +152,12 @@ function App() {
             Guess
           </button>
         </div>
+
+        <datalist id="vehicle-options">
+          {vehicleOptions.map((vehicle) => (
+            <option key={vehicle._id} value={vehicle.name} />
+          ))}
+        </datalist>
 
         {message && <p className="mt-4 text-center text-lg">{message}</p>}
       </div>
