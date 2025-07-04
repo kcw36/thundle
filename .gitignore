@@ -4,10 +4,13 @@
 __pycache__
 .pytest_cache
 
-*.json
+example_response.json
 *.csv
 
 *.tfvars
 .terraform*
 *.tfstate
 terraform.tfstate.backup
+
+node_modules/
+.DS_STORE

@@ -1,6 +1,0 @@
-pylint
-pytest
-pandas
-streamlit
-fuzzywuzzy
-python-levenshtein
