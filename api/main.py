@@ -54,7 +54,8 @@ class VehicleOption(BaseModel):
 app = FastAPI()
 
 origins = [
-    "http://localhost:5173"
+    "http://localhost:5173",
+    "https://thundle.onrender.com"
 ]
 
 app.add_middleware(
