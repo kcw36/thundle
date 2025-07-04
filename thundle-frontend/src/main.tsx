@@ -11,8 +11,8 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Menu />} />
-        <Route path="/blur-game" element={<BlurGame />} />
-        <Route path="/clue-game" element={<ClueGame />} />
+        <Route path="/blur-game/:mode" element={<BlurGame />} />
+        <Route path="/clue-game/:mode" element={<ClueGame />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>

@@ -6,12 +6,16 @@
  *   components continue to work with minimal changes.
  */
 
+import { DateTime } from "luxon";
 import {
   useEffect,
   useState,
 } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import ModeSelector from "../components/ModeSelector";
+import { usePersistentState } from "../hooks/usePersistentState";
 import "./BlurGame.css"
 
 // ────────────────────────────────────────────────────────────
@@ -67,36 +71,47 @@ const BLUR_LEVELS = [
 const guessesAllowed = BLUR_LEVELS.length - 1;
 
 function BlurGame() {
-  const [blurIndex, setBlurIndex] = useState(0);
-  const [guess, setGuess] = useState("");
-  const [message, setMessage] = useState("");
+  const { mode = "all" } = useParams<"mode">();
+  const frankfurtDate = DateTime.now().setZone("Europe/Berlin").toISODate();
+  const [blurIndex, setBlurIndex] = usePersistentState<number>(
+    `blur-${mode}-index-${frankfurtDate}`,
+    0
+  );
+  const [guess, setGuess]         = useState("");
+  const [message, setMessage]     = useState("");
   const [imageLoaded, setImageLoaded] = useState(false);
   const [correctAnswer, setCorrectAnswer] = useState("");
   const [imageUrl, setImageUrl] = useState();
   const [vehicleOptions, setVehicleNames] = useState<VehicleOption[]>([]);
   const navigate = useNavigate();
 
-   useEffect(() => {
+  useEffect(() => {
     async function fetchVehicle() {
       try {
         console.log("Fetching vehicle response...");
-        const response = await axios.get(`${API_BASE}/random`, { params: { mode: "ground" } });
+        const response = await axios.get(`${API_BASE}/random`, { params: { mode } });
         const data = response.data;
         setCorrectAnswer(data.name.toLowerCase());
         setImageUrl(data.image_url);
+
+        // 🔄 Reset state for a new game
+        setBlurIndex(0);
+        setMessage("");
+        setGuess("");
+        setImageLoaded(false);
       } catch (error) {
         setMessage("Failed to load tank data.");
         console.error("Error fetching vehicle:", error);
       }
     }
     fetchVehicle();
-  }, []);
+  }, [mode]);
 
   useEffect(() => {
     async function fetchAllNames() {
       try {
         const { data } = await axios.get<VehicleOption[]>(`${API_BASE}/names`, {
-          params: { mode: "ground" },
+          params: { mode },
         });
         setVehicleNames(data);
       } catch (err) {
@@ -126,7 +141,8 @@ function BlurGame() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white p-4">
-      <h1 className="text-3xl font-bold mb-4">Blurdle: Tank</h1>
+      <ModeSelector game="blur-game" />
+      <h1 className="text-3xl font-bold mb-4">Blurdle: {mode}</h1>
 
       <div className="w-full max-w-lg">
         <div className="w-full aspect-video overflow-hidden border border-gray-700 rounded-lg">

@@ -9,13 +9,13 @@ export default function Menu() {
       <h1 className="menu-title">Welcome to Thundle!</h1>
       <div className="menu-buttons">
         <button
-          onClick={() => navigate("/blur-game")}
+          onClick={() => navigate("/blur-game/all")}
           className="menu-button"
         >
           Blurdle
         </button>
         <button
-          onClick={() => navigate("/clue-game")}
+          onClick={() => navigate("/clue-game/all")}
           className="menu-button"
         >
           Cluedle

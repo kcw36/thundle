@@ -1,0 +1,7 @@
+.mode-selector {
+  display: flex; gap: 0.5rem; margin-bottom: .75rem;
+}
+.mode-selector button {
+  background:#24324f;color:#dfe7ff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;
+}
+.mode-selector .active { background:#1f45ff; }

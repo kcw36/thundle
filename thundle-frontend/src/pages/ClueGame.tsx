@@ -1,6 +1,10 @@
+import { DateTime } from "luxon";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useParams } from "react-router-dom";
+import ModeSelector from "../components/ModeSelector";
+import { usePersistentState } from "../hooks/usePersistentState";
 import "./ClueGame.css";
 
 /* ───────────── Types ───────────── */
@@ -55,30 +59,36 @@ const CLUE_COST: Record<ClueKey, number> = {
   squadron: 5
 };
 
+const DEFAULT_REVEALED_OBJECT: Record<ClueKey, boolean> = {
+  name: false,
+  image: false,
+  country: false,
+  type: false,
+  tier: false,
+  br: false,
+  premium: false,
+  event: false,
+  marketplace: false,
+  squadron: false
+}
+
 const MAX_POINTS = 100;
 const API_BASE = import.meta.env.VITE_THUNDLE_API ?? "";
 
 /* ───────────── Component ───────────── */
 export default function ClueGame() {
   const nav = useNavigate();
+  const { mode = "all" } = useParams<"mode">();
+  const frankfurtDate = DateTime.now().setZone("Europe/Berlin").toISODate();
+  const pointsKey = `clue-${mode}-points-${frankfurtDate}`;
+  const revealedKey = `clue-${mode}-revealed-${frankfurtDate}`;
 
   const [vehicleOptions, setVehicleNames] = useState<VehicleOption[]>([]);
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
-  const [points, setPoints] = useState(MAX_POINTS);
+  const [points, setPoints] = usePersistentState(pointsKey, MAX_POINTS);
+  const [revealed, setRevealed] = usePersistentState<Record<ClueKey, boolean>>(revealedKey, DEFAULT_REVEALED_OBJECT);
   const [guess, setGuess] = useState("");
   const [message, setMessage] = useState("");
-  const [revealed, setRevealed] = useState<Record<ClueKey, boolean>>({
-    name: false,
-    image: false,
-    country: false,
-    type: false,
-    tier: false,
-    br: false,
-    premium: false,
-    event: false,
-    marketplace: false,
-    squadron: false
-  });
 
   /* Fetch a random vehicle on mount */
   useEffect(() => {
@@ -86,22 +96,30 @@ export default function ClueGame() {
       try {
         // same endpoint you used in the blur game
         const { data } = await axios.get<Vehicle>(`${API_BASE}/random`, {
-          params: { mode: "ground" },
+          params: { mode },
         });
         setVehicle(data);
+
+        // 🔄 Reset state for a new game
+        setPoints(100);
+        setMessage("");
+        setGuess("");
+        setRevealed(DEFAULT_REVEALED_OBJECT);
+        setGuess("")
+        setMessage("")
       } catch (err) {
         console.error(err);
         setMessage("Failed to load vehicle.");
       }
     }
     fetchVehicle();
-  }, []);
+  }, [mode]);
 
   useEffect(() => {
     async function fetchAllNames() {
       try {
         const { data } = await axios.get<VehicleOption[]>(`${API_BASE}/names`, {
-          params: { mode: "ground" },
+          params: { mode },
         });
         setVehicleNames(data);
       } catch (err) {
@@ -141,6 +159,7 @@ export default function ClueGame() {
 
   return (
     <div className="clue-game-container">
+      <ModeSelector game="clue-game" />
       {/* Guess bar */}
       <datalist id="vehicle-options">
           {vehicleOptions.map((vehicle) => (
