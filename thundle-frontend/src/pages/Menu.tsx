@@ -12,13 +12,25 @@ export default function Menu() {
           onClick={() => navigate("/blur-game/all")}
           className="menu-button"
         >
-          Blurdle
+          Blurdle (Daily)
+        </button>
+        <button 
+          onClick={() => navigate(`/blur-archive/all`)}
+          className="menu-button"
+        >
+          Blurdle (Archive)
         </button>
         <button
           onClick={() => navigate("/clue-game/all")}
           className="menu-button"
         >
-          Cluedle
+          Cluedle (Daily)
+        </button>
+        <button 
+          onClick={() => navigate(`/clue-archive/all`)}
+          className="menu-button"
+        >
+          Cluedle (Archive)
         </button>
       </div>
     </div>
