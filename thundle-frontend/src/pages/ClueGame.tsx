@@ -189,9 +189,6 @@ export default function ClueGame() {
     setGuess("");
   };
 
-  /* disable until ready */
-  const disabled = loading || points <= 0;
-
   /* ───── JSX ───── */
   return (
     <div className="relative w-full min-h-screen p-5 bg-background text-[#dfe7ff] font-sans">
