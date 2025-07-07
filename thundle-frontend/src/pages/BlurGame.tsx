@@ -33,7 +33,7 @@ const berlinDate = () =>
   new Date().toLocaleDateString("en-CA", { timeZone: "Europe/Berlin" });
 
 /* ───────────── Component ───────────── */
-export default function BlurGame({ archive = false }: { archive?: boolean } = {}) {
+export default function BlurGame() {
   const { mode = "all", date } = useParams<"mode" | "date">();
   const isArchive      = Boolean(date);
   const today          = berlinDate();

@@ -71,7 +71,7 @@ const berlinDate = () =>
   new Date().toLocaleDateString("en-CA", { timeZone: "Europe/Berlin" });
 
 /* ───── Component ───── */
-export default function ClueGame({ archive = false }: { archive?: boolean } = {}) {
+export default function ClueGame() {
   const nav = useNavigate();
   const { mode = "all", date } = useParams<"mode" | "date">();
 
