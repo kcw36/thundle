@@ -152,7 +152,7 @@ export default function BlurGame() {
             <p className="text-gray-400 italic">Loading…</p>
           </div>
         ) : (
-          <div className="w-full aspect-video overflow-hidden border border-gray-700 rounded-lg">
+          <div className="w-full aspect-video overflow-hidden rounded-lg">
             <img
               src={imageUrl}
               alt="Guess the vehicle"

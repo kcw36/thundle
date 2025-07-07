@@ -172,14 +172,25 @@ export default function ClueGame() {
 
   /* guess */
   const submit = () => {
-    if (!answer) return;
-    if (guess.trim().toLowerCase() === answer) {
+    if (!answer || points <= 0) return; // Disable if no answer or points are 0
+    const cleanGuess = guess.trim().toLowerCase();
+
+    if (cleanGuess === answer) {
       setMessage(`Correct! You scored ${points} pts.`);
     } else {
-      setMessage("Wrong guess. Try again.");
+      const newPoints = Math.max(0, points - 10);
+      setPoints(newPoints);
+      if (newPoints === 0) {
+        setMessage(`Game Over! The correct answer was ${answer}.`);
+      } else {
+        setMessage("Wrong guess. Try again.");
+      }
     }
     setGuess("");
   };
+
+  /* disable until ready */
+  const disabled = loading || points <= 0;
 
   /* ───── JSX ───── */
   return (
@@ -291,7 +302,7 @@ export default function ClueGame() {
             ))}
           </div>
 
-          {message && <p className="message">{message}</p>}
+          {message && <p className="message text-center pt-4 text-lg md:text-xl lg:text-3xl">{message}</p>}
         </>
       )}
     </div>
