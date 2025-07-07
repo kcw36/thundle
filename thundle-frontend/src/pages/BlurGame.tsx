@@ -8,7 +8,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import ModeSelector from "../components/ModeSelector";
 import { usePersistentState } from "../hooks/usePersistentState";
-import "./BlurGame.css";
+
 
 /* ───────────── Types ───────────── */
 export interface Vehicle {

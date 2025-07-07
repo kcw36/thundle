@@ -6,7 +6,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import ModeSelector from "../components/ModeSelector";
 import { usePersistentState } from "../hooks/usePersistentState";
-import "./ClueGame.css";
+
 
 /* ───── Types ───── */
 export interface Vehicle {
@@ -183,7 +183,7 @@ export default function ClueGame() {
 
   /* ───── JSX ───── */
   return (
-    <div className="clue-game-container">
+    <div className="relative w-1/2 mx-auto p-5 bg-[#0e1525] text-[#dfe7ff] rounded-xl font-sans">
       <ModeSelector game={isArchive ? "clue-archive" : "clue-game"} />
 
       {loading ? (
@@ -200,8 +200,8 @@ export default function ClueGame() {
           </datalist>
 
           {/* guess bar */}
-          <div className="guess-bar">
-            <button onClick={() => nav("/")} className="guess-submit">
+          <div className="flex gap-2 mb-3">
+            <button onClick={() => nav("/")} className="bg-[#24324f] border-none text-[#dfe7ff] px-3 py-1 rounded-md cursor-pointer hover:bg-[#2f4063]">
               ← Home
             </button>
             <input
@@ -209,78 +209,78 @@ export default function ClueGame() {
               value={guess}
               onChange={e => setGuess(e.target.value)}
               onKeyDown={e => e.key === "Enter" && submit()}
-              className="guess-input"
+              className="flex-1 bg-[#1d273b] border-none rounded-md px-3 py-2 text-white"
               placeholder="Guess…"
             />
-            <button className="guess-submit" onClick={submit}>
+            <button className="bg-[#485b7d] border-none text-white px-3.5 rounded-md text-xl cursor-pointer hover:bg-[#58709b]" onClick={submit}>
               →
             </button>
           </div>
 
           {/* points */}
-          <div className="points-wrapper">
+          <div className="relative h-4.5 bg-[#1d273b] rounded mb-3">
             <div
-              className="points-bar"
+              className="h-full bg-[#1f45ff] transition-width duration-300 ease-in-out"
               style={{ width: `${points}%` }}
             />
-            <span className="points-label">{points}</span>
+            <span className="absolute right-1.5 top-0 text-sm">{points}</span>
           </div>
 
           {/* grid */}
-          <div className="clue-grid">
+          <div className="grid grid-cols-4 auto-rows-[120px] gap-3">
             {/* NAME */}
             <div
-              className={`clue-card name-card ${revealed.name ? "revealed" : ""}`}
+              className={`col-span-2 text-xl tracking-widest ${revealed.name ? "bg-[#2f5e39] cursor-default" : "bg-[#2b3549] cursor-pointer"} rounded-lg relative p-2 flex items-center justify-center text-center`}
               title={!revealed.name ? `-${CLUE_COST.name} pts` : ""}
               onClick={() => reveal("name")}
             >
-              <span className="clue-label">Name</span>
+              <span className="absolute top-1 left-1.5 text-xs uppercase tracking-wider text-[#b9c5e1] pointer-events-none">Name</span>
               {revealed.name && vehicle && masked(vehicle.name)}
             </div>
 
             {/* IMAGE */}
             <div
-              className={`clue-card image-card ${revealed.image ? "revealed" : ""}`}
+              className={`row-span-3 col-span-2 ${revealed.image ? "bg-[#2f5e39] cursor-default" : "bg-[#2b3549] cursor-pointer"} rounded-lg relative p-2 flex items-center justify-center text-center`}
               title={!revealed.image ? `-${CLUE_COST.image} pts` : ""}
               onClick={() => reveal("image")}
             >
-              <span className="clue-label">Image</span>
+              <span className="absolute top-1 left-1.5 text-xs uppercase tracking-wider text-[#b9c5e1] pointer-events-none">Image</span>
               {revealed.image && vehicle && (
-                <img src={vehicle.image_url} alt="vehicle" />
+                <img src={vehicle.image_url} alt="vehicle" className="w-full h-full object-cover rounded-md" />
               )}
             </div>
 
             {/* COUNTRY / TYPE / TIER / BR */}
             <div
-              className={`clue-card country-card ${revealed.country ? "revealed" : ""}`}
+              className={`${revealed.country ? "bg-[#2f5e39] cursor-default" : "bg-[#2b3549] cursor-pointer"} rounded-lg relative p-2 flex items-center justify-center text-center`}
               title={!revealed.country ? `-${CLUE_COST.country} pts` : ""}
               onClick={() => reveal("country")}
             >
-              <span className="clue-label">Country</span>
+              <span className="absolute top-1 left-1.5 text-xs uppercase tracking-wider text-[#b9c5e1] pointer-events-none">Country</span>
               {revealed.country && vehicle?.country}
             </div>
             <div
-              className={`clue-card type-card ${revealed.type ? "revealed" : ""}`}
+              className={`${revealed.type ? "bg-[#2f5e39] cursor-default" : "bg-[#2b3549] cursor-pointer"} rounded-lg relative p-2 flex items-center justify-center text-center`}
               title={!revealed.type ? `-${CLUE_COST.type} pts` : ""}
               onClick={() => reveal("type")}
             >
-              <span className="clue-label">Type</span>
+              <span className="absolute top-1 left-1.5 text-xs uppercase tracking-wider text-[#b9c5e1] pointer-events-none">Type</span>
               {revealed.type && vehicle?.vehicle_type}
             </div>
             <div
-              className={`clue-card tier-card ${revealed.tier ? "revealed" : ""}`}
+              className={`${revealed.tier ? "bg-[#2f5e39] cursor-default" : "bg-[#2b3549] cursor-pointer"} rounded-lg relative p-2 flex items-center justify-center text-center`}
               title={!revealed.tier ? `-${CLUE_COST.tier} pts` : ""}
               onClick={() => reveal("tier")}
             >
-              <span className="clue-label">Tier</span>
+              <span className="absolute top-1 left-1.5 text-xs uppercase tracking-wider text-[#b9c5e1] pointer-events-none">Tier</span>
               {revealed.tier && vehicle?.tier}
             </div>
             <div
-              className={`clue-card br-card ${revealed.br ? "revealed" : ""}`}
+              className={`${revealed.br ? "bg-[#2f5e39] cursor-default" : "bg-[#2b3549] cursor-pointer"} rounded-lg relative p-2 flex items-center justify-center text-center`}
               title={!revealed.br ? `-${CLUE_COST.br} pts` : ""}
               onClick={() => reveal("br")}
             >
-              <span className="clue-label">Battle Rating</span>
+              <span className="absolute top-1 left-1.5 text-xs uppercase tracking-wider text-[#b9c5e1] pointer-events-none">Battle Rating</span>
               {revealed.br && vehicle?.realistic_br}
             </div>
 
@@ -288,11 +288,11 @@ export default function ClueGame() {
             {(["premium", "event", "marketplace", "squadron"] as const).map(k => (
               <div
                 key={k}
-                className={`clue-card ${k}-card ${revealed[k] ? "revealed" : ""}`}
+                className={`${revealed[k] ? "bg-[#2f5e39] cursor-default" : "bg-[#2b3549] cursor-pointer"} rounded-lg relative p-2 flex items-center justify-center text-center`}
                 title={!revealed[k] ? `-${CLUE_COST[k]} pts` : ""}
                 onClick={() => reveal(k)}
               >
-                <span className="clue-label">{k.charAt(0).toUpperCase() + k.slice(1)}?</span>
+                <span className="absolute top-1 left-1.5 text-xs uppercase tracking-wider text-[#b9c5e1] pointer-events-none">{k.charAt(0).toUpperCase() + k.slice(1)}?</span>
                 {revealed[k] && yesNo((vehicle as any)[`is_${k}`])}
               </div>
             ))}
