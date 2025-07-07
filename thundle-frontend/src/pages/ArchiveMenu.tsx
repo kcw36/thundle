@@ -45,7 +45,7 @@ export default function ArchiveMenu({ game }: { game: "blur" | "clue" }) {
   }, [game]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white text-center w-1/2">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-background text-white text-center w-full">
       <h1 className="text-4xl mb-8">
         {game === "blur" ? "Blurdle" : "Cluedle"} Archive
       </h1>

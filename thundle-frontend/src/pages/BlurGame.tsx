@@ -25,7 +25,7 @@ export interface VehicleOption {
 /* ───────────── Config ───────────── */
 const API_BASE = import.meta.env.VITE_THUNDLE_API ?? "";
 
-const BLUR_LEVELS = ["blur-10px", "blur-7-5px", "blur-5px", "blur-2-5px", "blur-none"];
+const BLUR_LEVELS = ["blur-lg", "blur-md", "blur-sm", "blur-xs", "blur-none"];
 const guessesAllowed = BLUR_LEVELS.length - 1;
 
 /* helper: YYYY‑MM‑DD in Berlin */
@@ -138,7 +138,7 @@ export default function BlurGame() {
 
   /* ─────────── JSX ─────────── */
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white p-4">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-background text-white p-4">
       <ModeSelector game={isArchive ? "blur-archive" : "blur-game"} />
 
       <h1 className="text-3xl font-bold mb-4">
@@ -168,7 +168,7 @@ export default function BlurGame() {
             list="vehicle-options"
             value={guess}
             onChange={(e) => setGuess(e.target.value)}
-            className="flex-1 px-4 py-2 text-black rounded"
+            className="flex-1 px-4 py-2 text-white bg-accent rounded"
             placeholder="Enter your guess"
             disabled={disabled}
           />

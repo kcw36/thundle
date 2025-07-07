@@ -183,7 +183,7 @@ export default function ClueGame() {
 
   /* ───── JSX ───── */
   return (
-    <div className="relative w-1/2 mx-auto p-5 bg-[#0e1525] text-[#dfe7ff] rounded-xl font-sans">
+    <div className="relative w-full min-h-screen p-5 bg-background text-[#dfe7ff] rounded-xl font-sans">
       <ModeSelector game={isArchive ? "clue-archive" : "clue-game"} />
 
       {loading ? (
@@ -230,70 +230,63 @@ export default function ClueGame() {
           <div className="grid grid-cols-4 auto-rows-[120px] gap-3">
             {/* NAME */}
             <div
-              className={`col-span-2 text-xl tracking-widest ${revealed.name ? "bg-[#2f5e39] cursor-default" : "bg-[#2b3549] cursor-pointer"} rounded-lg relative p-2 flex items-center justify-center text-center`}
+              className={`col-span-2 text-xl tracking-widest ${revealed.name ? "bg-[#2f5e39] cursor-default" : "bg-[#2b3549] cursor-pointer"} rounded-lg relative p-1 flex items-center justify-center text-center`}
               title={!revealed.name ? `-${CLUE_COST.name} pts` : ""}
               onClick={() => reveal("name")}
             >
-              <span className="absolute top-1 left-1.5 text-xs uppercase tracking-wider text-[#b9c5e1] pointer-events-none">Name</span>
-              {revealed.name && vehicle && masked(vehicle.name)}
+              {revealed.name ? vehicle && masked(vehicle.name) : <span className="text-xs sm:text-sm md:text-base uppercase tracking-wider text-[#b9c5e1] text-wrap">Name</span>}
             </div>
 
             {/* IMAGE */}
             <div
-              className={`row-span-3 col-span-2 ${revealed.image ? "bg-[#2f5e39] cursor-default" : "bg-[#2b3549] cursor-pointer"} rounded-lg relative p-2 flex items-center justify-center text-center`}
+              className={`row-span-3 col-span-2 ${revealed.image ? "bg-[#2f5e39] cursor-default" : "bg-[#2b3549] cursor-pointer"} rounded-lg relative p-1 flex items-center justify-center text-center`}
               title={!revealed.image ? `-${CLUE_COST.image} pts` : ""}
               onClick={() => reveal("image")}
             >
-              <span className="absolute top-1 left-1.5 text-xs uppercase tracking-wider text-[#b9c5e1] pointer-events-none">Image</span>
-              {revealed.image && vehicle && (
+              {revealed.image ? vehicle && (
                 <img src={vehicle.image_url} alt="vehicle" className="w-full h-full object-cover rounded-md" />
-              )}
+              ) : <span className="text-xs sm:text-sm md:text-base uppercase tracking-wider text-[#b9c5e1] text-wrap">Image</span>}
             </div>
 
             {/* COUNTRY / TYPE / TIER / BR */}
             <div
-              className={`${revealed.country ? "bg-[#2f5e39] cursor-default" : "bg-[#2b3549] cursor-pointer"} rounded-lg relative p-2 flex items-center justify-center text-center`}
+              className={`${revealed.country ? "bg-[#2f5e39] cursor-default" : "bg-[#2b3549] cursor-pointer"} rounded-lg relative p-1 flex items-center justify-center text-center`}
               title={!revealed.country ? `-${CLUE_COST.country} pts` : ""}
               onClick={() => reveal("country")}
             >
-              <span className="absolute top-1 left-1.5 text-xs uppercase tracking-wider text-[#b9c5e1] pointer-events-none">Country</span>
-              {revealed.country && vehicle?.country}
+              {revealed.country ? vehicle?.country : <span className="text-xs sm:text-sm md:text-base uppercase tracking-wider text-[#b9c5e1] text-wrap">Country</span>}
             </div>
             <div
-              className={`${revealed.type ? "bg-[#2f5e39] cursor-default" : "bg-[#2b3549] cursor-pointer"} rounded-lg relative p-2 flex items-center justify-center text-center`}
+              className={`${revealed.type ? "bg-[#2f5e39] cursor-default" : "bg-[#2b3549] cursor-pointer"} rounded-lg relative p-1 flex items-center justify-center text-center`}
               title={!revealed.type ? `-${CLUE_COST.type} pts` : ""}
               onClick={() => reveal("type")}
             >
-              <span className="absolute top-1 left-1.5 text-xs uppercase tracking-wider text-[#b9c5e1] pointer-events-none">Type</span>
-              {revealed.type && vehicle?.vehicle_type}
+              {revealed.type ? vehicle?.vehicle_type : <span className="text-xs sm:text-sm md:text-base uppercase tracking-wider text-[#b9c5e1] text-wrap">Type</span>}
             </div>
             <div
-              className={`${revealed.tier ? "bg-[#2f5e39] cursor-default" : "bg-[#2b3549] cursor-pointer"} rounded-lg relative p-2 flex items-center justify-center text-center`}
+              className={`${revealed.tier ? "bg-[#2f5e39] cursor-default" : "bg-[#2b3549] cursor-pointer"} rounded-lg relative p-1 flex items-center justify-center text-center`}
               title={!revealed.tier ? `-${CLUE_COST.tier} pts` : ""}
               onClick={() => reveal("tier")}
             >
-              <span className="absolute top-1 left-1.5 text-xs uppercase tracking-wider text-[#b9c5e1] pointer-events-none">Tier</span>
-              {revealed.tier && vehicle?.tier}
+              {revealed.tier ? vehicle?.tier : <span className="text-xs sm:text-sm md:text-base uppercase tracking-wider text-[#b9c5e1] text-wrap">Tier</span>}
             </div>
             <div
-              className={`${revealed.br ? "bg-[#2f5e39] cursor-default" : "bg-[#2b3549] cursor-pointer"} rounded-lg relative p-2 flex items-center justify-center text-center`}
+              className={`${revealed.br ? "bg-[#2f5e39] cursor-default" : "bg-[#2b3549] cursor-pointer"} rounded-lg relative p-1 flex items-center justify-center text-center`}
               title={!revealed.br ? `-${CLUE_COST.br} pts` : ""}
               onClick={() => reveal("br")}
             >
-              <span className="absolute top-1 left-1.5 text-xs uppercase tracking-wider text-[#b9c5e1] pointer-events-none">Battle Rating</span>
-              {revealed.br && vehicle?.realistic_br}
+              {revealed.br ? vehicle?.realistic_br : <span className="text-xs sm:text-sm md:text-base uppercase tracking-wider text-[#b9c5e1] text-wrap">BR</span>}
             </div>
 
             {/* FLAGS */}
             {(["premium", "event", "marketplace", "squadron"] as const).map(k => (
               <div
                 key={k}
-                className={`${revealed[k] ? "bg-[#2f5e39] cursor-default" : "bg-[#2b3549] cursor-pointer"} rounded-lg relative p-2 flex items-center justify-center text-center`}
+                className={`${revealed[k] ? "bg-[#2f5e39] cursor-default" : "bg-[#2b3549] cursor-pointer"} rounded-lg relative p-1 flex items-center justify-center text-center`}
                 title={!revealed[k] ? `-${CLUE_COST[k]} pts` : ""}
                 onClick={() => reveal(k)}
               >
-                <span className="absolute top-1 left-1.5 text-xs uppercase tracking-wider text-[#b9c5e1] pointer-events-none">{k.charAt(0).toUpperCase() + k.slice(1)}?</span>
-                {revealed[k] && yesNo((vehicle as any)[`is_${k}`])}
+                {revealed[k] ? yesNo((vehicle as any)[`is_${k}`]) : <span className="text-xs sm:text-sm md:text-base uppercase tracking-wider text-[#b9c5e1] text-wrap">{k === "marketplace" ? "Market" : k === "squadron" ? "Squad" : k.charAt(0).toUpperCase() + k.slice(1)}</span>}
               </div>
             ))}
           </div>
