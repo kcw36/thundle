@@ -18,7 +18,7 @@ from data import (get_date_hash_index, get_objects,
 
 
 class Vehicle(BaseModel):
-    _id: str = Field(alias='_id')
+    _id: str
     country: str
     vehicle_type: str
     tier: int
@@ -35,15 +35,9 @@ class Vehicle(BaseModel):
     name: str
     description: str | None
 
-    class Config:
-        allow_population_by_field_name = True
-        populate_by_name = True
-        json_encoders = {ObjectId: str}
-        orm_mode = True
-
 
 class CacheVehicle(BaseModel):
-    _id: str = Field(alias='_id')
+    _id: str
     country: str
     vehicle_type: str
     tier: int
@@ -62,6 +56,7 @@ class CacheVehicle(BaseModel):
     game_mode: str
     data_set: str
     date: str
+
 
 class VehicleOption(BaseModel):
     id: str = Field(alias="_id")

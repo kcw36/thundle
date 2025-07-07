@@ -3,3 +3,4 @@ pylint
 fastapi[all]
 pymongo[srv]==3.12
 pydantic
+freezegun
