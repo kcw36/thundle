@@ -104,7 +104,7 @@ def test_names(mock_get_objects):
     json_response = response.json()
     assert isinstance(json_response, list)
     assert json_response[0]["name"] == "Test Plane"
-    assert "id" in json_response[0]
+    assert "_id" in json_response[0]
 
 
 def test_names_invalid_mode():
