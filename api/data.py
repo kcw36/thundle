@@ -84,10 +84,15 @@ def get_archive(date: str, game: str = "blur"):
     logger = getLogger()
     logger.info("Checking cache for documents...")
     collection = get_collection("cache")
-    query = { 
-        "game_mode": game,
-        "date": date.replace("_", "/")
-    }
+    if date:
+        query = { 
+            "game_mode": game,
+            "date": date.replace("_", "/")
+        }
+    else:
+        query = { 
+            "game_mode": game
+        }
     documents = list(collection.find(query))
     if documents:
         logger.info("Found documents in cache, displaying first example: %s", documents[0])

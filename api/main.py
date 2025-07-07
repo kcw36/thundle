@@ -207,3 +207,13 @@ async def root(date: str = "07_07_2025", game: str = "blur"):
     if documents:
         return [CacheVehicle(**doc) for doc in documents]
     return None
+
+
+@app.get("/cached_dates", response_model=list[str] | None)
+async def root(game: str = "blur"):
+    if not validate_game(game):
+        raise HTTPException(status_code=400, detail="Game value not accepted.")
+    documents = get_archive(None, game)
+    if documents:
+        return sorted(list(set(doc["date"] for doc in documents)))
+    return None
