@@ -1,7 +1,9 @@
+/* ─────────────────────────────────────────
+   ClueGame.tsx  —  One vehicle per day/mode
+   ───────────────────────────────────────── */
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import { useParams } from "react-router-dom";
 import ModeSelector from "../components/ModeSelector";
 import { usePersistentState } from "../hooks/usePersistentState";
 import "./ClueGame.css";
@@ -25,13 +27,11 @@ export interface Vehicle {
   name: string;
   description: string;
 }
-
 export interface VehicleOption {
   _id: string;
   name: string;
 }
 
-/* 10 clues */
 type ClueKey =
   | "name"
   | "image"
@@ -44,7 +44,7 @@ type ClueKey =
   | "marketplace"
   | "squadron";
 
-/* Point cost per clue */
+/* ─────────── Config ─────────── */
 const CLUE_COST: Record<ClueKey, number> = {
   name: 20,
   image: 30,
@@ -55,10 +55,10 @@ const CLUE_COST: Record<ClueKey, number> = {
   premium: 5,
   event: 5,
   marketplace: 5,
-  squadron: 5
+  squadron: 5,
 };
 
-const DEFAULT_REVEALED_OBJECT: Record<ClueKey, boolean> = {
+const DEFAULT_REVEALED: Record<ClueKey, boolean> = {
   name: false,
   image: false,
   country: false,
@@ -68,235 +68,263 @@ const DEFAULT_REVEALED_OBJECT: Record<ClueKey, boolean> = {
   premium: false,
   event: false,
   marketplace: false,
-  squadron: false
-}
+  squadron: false,
+};
 
 const MAX_POINTS = 100;
 const API_BASE = import.meta.env.VITE_THUNDLE_API ?? "";
 
-/* ───────────── Component ───────────── */
+/* helper: YYYY‑MM‑DD in Europe/Berlin */
+const berlinDate = (): string =>
+  new Date().toLocaleDateString("en-CA", { timeZone: "Europe/Berlin" });
+
+/* ─────────── Component ─────────── */
 export default function ClueGame() {
   const nav = useNavigate();
   const { mode = "all" } = useParams<"mode">();
-    const berlinTime = new Date().toLocaleDateString("en-CA", {
-    timeZone: "Europe/Berlin", // Use Frankfurt's timezone
-  });
-  const pointsKey = `clue-${mode}-points-${berlinTime}`;
-  const revealedKey = `clue-${mode}-revealed-${berlinTime}`;
+  const today = berlinDate();
+  const [loading, setLoading] = useState(true);
 
-  const [vehicleOptions, setVehicleNames] = useState<VehicleOption[]>([]);
+  /* cache keys */
+  const vehicleKey   = `clue-${mode}-vehicle-${today}`;
+  const answerKey    = `clue-${mode}-answer-${today}`;
+  const pointsKey    = `clue-${mode}-points-${today}`;
+  const revealedKey  = `clue-${mode}-revealed-${today}`;
+
+  /* state */
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
+  const [correctAnswer, setCorrectAnswer] = useState("");
   const [points, setPoints] = usePersistentState(pointsKey, MAX_POINTS);
-  const [revealed, setRevealed] = usePersistentState<Record<ClueKey, boolean>>(revealedKey, DEFAULT_REVEALED_OBJECT);
+  const [revealed, setRevealed] = usePersistentState<Record<ClueKey, boolean>>(
+    revealedKey,
+    DEFAULT_REVEALED
+  );
   const [guess, setGuess] = useState("");
   const [message, setMessage] = useState("");
+  const [vehicleOptions, setVehicleOptions] = useState<VehicleOption[]>([]);
 
-  /* Fetch a random vehicle on mount */
+  /* fetch / load vehicle of the day */
   useEffect(() => {
-    async function fetchVehicle() {
+    async function initVehicle() {
+      setLoading(true);
+      const cachedV = localStorage.getItem(vehicleKey);
+      const cachedA = localStorage.getItem(answerKey);
+
+      if (cachedV && cachedA) {
+        setVehicle(JSON.parse(cachedV));
+        setCorrectAnswer(cachedA);
+        setLoading(false);
+        return;
+      }
       try {
-        // same endpoint you used in the blur game
         const { data } = await axios.get<Vehicle>(`${API_BASE}/random`, {
           params: { mode },
         });
         setVehicle(data);
-
-        // 🔄 Reset state for a new game
-        setPoints(100);
-        setMessage("");
-        setGuess("");
-        setRevealed(DEFAULT_REVEALED_OBJECT);
-        setGuess("")
-        setMessage("")
+        setCorrectAnswer(data.name.toLowerCase());
+        localStorage.setItem(vehicleKey, JSON.stringify(data));
+        localStorage.setItem(answerKey, data.name.toLowerCase());
       } catch (err) {
-        console.error(err);
         setMessage("Failed to load vehicle.");
+        console.error(err);
+      } finally {
+        setLoading(false);
       }
     }
-    fetchVehicle();
-  }, [mode]);
+    initVehicle();
+  }, [mode, today]);
 
+  /* reset daily progress on mode/date change */
   useEffect(() => {
-    async function fetchAllNames() {
-      try {
-        const { data } = await axios.get<VehicleOption[]>(`${API_BASE}/names`, {
-          params: { mode },
-        });
-        setVehicleNames(data);
-      } catch (err) {
-        console.error("Could not load vehicle names for autocomplete:", err);
-      }
+    const existingRevealed = localStorage.getItem(revealedKey);
+    const existingPoints = localStorage.getItem(pointsKey);
+
+    if (!existingRevealed || !existingPoints) {
+      setRevealed(DEFAULT_REVEALED);
+      setPoints(MAX_POINTS);
     }
-    fetchAllNames();
+
+    setGuess("");
+    setMessage("");
+  }, [mode, today]);
+
+  /* fetch vehicle names for datalist (not cached daily) */
+  useEffect(() => {
+    axios
+      .get<VehicleOption[]>(`${API_BASE}/names`, { params: { mode } })
+      .then((r) => setVehicleOptions(r.data))
+      .catch(() => console.warn("Could not load names list"));
   }, [mode]);
 
-  /* Reveal a clue */
+  /* utils */
+  const maskedName = (n: string) =>
+    n
+      .split("")
+      .map((ch, i) => (i % 2 ? "_" : ch))
+      .join("");
+  const yesNo = (flag?: boolean) => (flag ? "Yes" : "No");
+
+  /* reveal */
   const reveal = (key: ClueKey) => {
     if (revealed[key]) return;
     setRevealed({ ...revealed, [key]: true });
     setPoints((p) => Math.max(0, p - CLUE_COST[key]));
   };
 
-  /* Handle guesses */
+  /* guess handler */
   const handleGuess = () => {
     if (!vehicle) return;
-
-    if (guess.trim().toLowerCase() === vehicle.name.toLowerCase()) {
-      setMessage(`Correct! You scored ${points} points.`);
+    if (guess.trim().toLowerCase() === correctAnswer) {
+      setMessage(`Correct! You scored ${points} pts.`);
     } else {
       setMessage("Wrong guess, try again.");
     }
     setGuess("");
   };
 
-  const maskedName = (name: string) =>
-  name
-    .split("")
-    .map((ch, i) => (i % 2 === 0 ? ch : "_"))
-    .join("");
-
-  /* Boolean display helper */
-  const yesNo = (flag?: boolean) => (flag ? "Yes" : "No");
-
+  /* ─────────── JSX ─────────── */
   return (
-    <div className="clue-game-container">
-      <ModeSelector game="clue-game" />
-      {/* Guess bar */}
-      <datalist id="vehicle-options">
-          {vehicleOptions.map((vehicle) => (
-            <option key={vehicle._id} value={vehicle.name} />
-          ))}
-      </datalist>
-      <div className="guess-bar">
-        <button className="guess-submit" onClick={() => nav("/")}>
-            ← Home
-        </button>
-        <input
-          className="guess-input"
-          placeholder="Guess..."
-          value={guess}
-          onChange={(e) => setGuess(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleGuess()}
-          list="vehicle-options"
-        />
-        <button className="guess-submit" onClick={handleGuess}>
-          →
-        </button>
-      </div>
+    <>
+      {loading ? (
+        <div className="flex justify-center items-center h-[300px]">
+          <p className="text-gray-300">Loading vehicle...</p>
+        </div>
+      ) : (
+        <>
+          <div className="clue-game-container">
+            <ModeSelector game="clue-game" />
 
-      {/* Points bar */}
-      <div className="points-wrapper">
-        <div
-          className="points-bar"
-          style={{ width: `${(points / MAX_POINTS) * 100}%` }}
-        />
-        <span className="points-label">{points}</span>
-      </div>
+            {/* datalist for autocomplete */}
+            <datalist id="vehicle-options">
+              {vehicleOptions.map((v) => (
+                <option key={v._id} value={v.name} />
+              ))}
+            </datalist>
 
-      {/* Grid */}
-      <div className="clue-grid">
-        {/* NAME */}
-        <div
-            className={`clue-card name-card ${revealed.name ? "revealed" : ""}`}
-            onClick={() => reveal("name")}
-            title={!revealed.name ? `${CLUE_COST.name} pts` : ""}
-        >
-            <span className="clue-label">Name</span>
-            {revealed.name && vehicle && maskedName(vehicle.name)}
-        </div>
+            {/* guess bar */}
+            <div className="guess-bar">
+              <button onClick={() => nav("/")} className="guess-submit">
+                ← Home
+              </button>
+              <input
+                className="guess-input"
+                placeholder="Guess..."
+                list="vehicle-options"
+                value={guess}
+                onChange={(e) => setGuess(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleGuess()}
+              />
+              <button className="guess-submit" onClick={handleGuess}>
+                →
+              </button>
+            </div>
 
-        {/* IMAGE */}
-        <div
-          className={`clue-card image-card ${revealed.image ? "revealed" : ""}`}
-          onClick={() => reveal("image")}
-          title={!revealed.image ? `${CLUE_COST.image} pts` : ""}
-        >
-          <span className="clue-label">Image</span>
-          {revealed.image && vehicle && (
-            <img src={vehicle.image_url} alt="vehicle" />
-          )}
-        </div>
+            {/* points bar */}
+            <div className="points-wrapper">
+              <div
+                className="points-bar"
+                style={{ width: `${(points / MAX_POINTS) * 100}%` }}
+              />
+              <span className="points-label">{points}</span>
+            </div>
 
-        {/* COUNTRY / TYPE / TIER / BR */}
-        <div
-          className={`clue-card country-card ${
-            revealed.country ? "revealed" : ""
-          }`}
-          onClick={() => reveal("country")}
-          title={!revealed.country ? `${CLUE_COST.country} pts` : ""}
-        >
-          <span className="clue-label">Country</span>
-          {revealed.country && vehicle?.country}
-        </div>
-        <div
-          className={`clue-card type-card ${revealed.type ? "revealed" : ""}`}
-          onClick={() => reveal("type")}
-          title={!revealed.type ? `${CLUE_COST.type} pts` : ""}
-        >
-          <span className="clue-label">Type</span>
-          {revealed.type && vehicle?.vehicle_type}
-        </div>
-        <div
-          className={`clue-card tier-card ${revealed.tier ? "revealed" : ""}`}
-          onClick={() => reveal("tier")}
-          title={!revealed.tier ? `${CLUE_COST.tier} pts` : ""}
-        >
-          <span className="clue-label">Tier</span>
-          {revealed.tier && vehicle?.tier}
-        </div>
-        <div
-          className={`clue-card br-card ${revealed.br ? "revealed" : ""}`}
-          onClick={() => reveal("br")}
-          title={!revealed.br ? `${CLUE_COST.br} pts` : ""}
-        >
-          <span className="clue-label">Battle Rating</span>
-          {revealed.br && vehicle?.realistic_br}
-        </div>
+            {/* clue grid */}
+            <div className="clue-grid">
+              {/* NAME */}
+              <div
+                className={`clue-card name-card ${revealed.name ? "revealed" : ""}`}
+                title={!revealed.name ? `-${CLUE_COST.name} pts` : ""}
+                onClick={() => reveal("name")}
+              >
+                <span className="clue-label">Name</span>
+                {revealed.name && vehicle && maskedName(vehicle.name)}
+              </div>
 
-        {/* BOOLEAN FLAGS */}
-        <div
-          className={`clue-card premium-card ${
-            revealed.premium ? "revealed" : ""
-          }`}
-          onClick={() => reveal("premium")}
-          title={!revealed.premium ? `${CLUE_COST.premium} pts` : ""}
-        >
-          <span className="clue-label">Premium?</span>
-          {revealed.premium && yesNo(vehicle?.is_premium)}
-        </div>
-        <div
-          className={`clue-card event-card ${
-            revealed.event ? "revealed" : ""
-          }`}
-          onClick={() => reveal("event")}
-          title={!revealed.event ? `${CLUE_COST.event} pts` : ""}
-        >
-          <span className="clue-label">Event?</span>
-          {revealed.event && yesNo(vehicle?.is_event)}
-        </div>
-        <div
-          className={`clue-card marketplace-card ${
-            revealed.marketplace ? "revealed" : ""
-          }`}
-          onClick={() => reveal("marketplace")}
-          title={!revealed.marketplace ? `${CLUE_COST.marketplace} pts` : ""}
-        >
-          <span className="clue-label">Marketplace?</span>
-          {revealed.marketplace && yesNo(vehicle?.is_marketplace)}
-        </div>
-        <div
-          className={`clue-card squadron-card ${
-            revealed.squadron ? "revealed" : ""
-          }`}
-          onClick={() => reveal("marketplace")}
-          title={!revealed.squadron ? `${CLUE_COST.squadron} pts` : ""}
-        >
-          <span className="clue-label">Squadron?</span>
-          {revealed.squadron && yesNo(vehicle?.is_squadron)}
-        </div>
-      </div>
+              {/* IMAGE */}
+              <div
+                className={`clue-card image-card ${revealed.image ? "revealed" : ""}`}
+                title={!revealed.image ? `-${CLUE_COST.image} pts` : ""}
+                onClick={() => reveal("image")}
+              >
+                <span className="clue-label">Image</span>
+                {revealed.image && vehicle && (
+                  <img src={vehicle.image_url} alt="vehicle" />
+                )}
+              </div>
 
-      {message && <p className="message">{message}</p>}
-    </div>
+              {/* COUNTRY / TYPE / TIER / BR */}
+              <div
+                className={`clue-card country-card ${revealed.country ? "revealed" : ""}`}
+                title={!revealed.country ? `-${CLUE_COST.country} pts` : ""}
+                onClick={() => reveal("country")}
+              >
+                <span className="clue-label">Country</span>
+                {revealed.country && vehicle?.country}
+              </div>
+              <div
+                className={`clue-card type-card ${revealed.type ? "revealed" : ""}`}
+                title={!revealed.type ? `-${CLUE_COST.type} pts` : ""}
+                onClick={() => reveal("type")}
+              >
+                <span className="clue-label">Type</span>
+                {revealed.type && vehicle?.vehicle_type}
+              </div>
+              <div
+                className={`clue-card tier-card ${revealed.tier ? "revealed" : ""}`}
+                title={!revealed.tier ? `-${CLUE_COST.tier} pts` : ""}
+                onClick={() => reveal("tier")}
+              >
+                <span className="clue-label">Tier</span>
+                {revealed.tier && vehicle?.tier}
+              </div>
+              <div
+                className={`clue-card br-card ${revealed.br ? "revealed" : ""}`}
+                title={!revealed.br ? `-${CLUE_COST.br} pts` : ""}
+                onClick={() => reveal("br")}
+              >
+                <span className="clue-label">Battle Rating</span>
+                {revealed.br && vehicle?.realistic_br}
+              </div>
+
+              {/* FLAGS */}
+              <div
+                className={`clue-card premium-card ${revealed.premium ? "revealed" : ""}`}
+                title={!revealed.premium ? `-${CLUE_COST.premium} pts` : ""}
+                onClick={() => reveal("premium")}
+              >
+                <span className="clue-label">Premium?</span>
+                {revealed.premium && yesNo(vehicle?.is_premium)}
+              </div>
+              <div
+                className={`clue-card event-card ${revealed.event ? "revealed" : ""}`}
+                title={!revealed.event ? `-${CLUE_COST.event} pts` : ""}
+                onClick={() => reveal("event")}
+              >
+                <span className="clue-label">Event?</span>
+                {revealed.event && yesNo(vehicle?.is_event)}
+              </div>
+              <div
+                className={`clue-card marketplace-card ${revealed.marketplace ? "revealed" : ""}`}
+                title={!revealed.marketplace ? `-${CLUE_COST.marketplace} pts` : ""}
+                onClick={() => reveal("marketplace")}
+              >
+                <span className="clue-label">Marketplace?</span>
+                {revealed.marketplace && yesNo(vehicle?.is_marketplace)}
+              </div>
+              <div
+                className={`clue-card squadron-card ${revealed.squadron ? "revealed" : ""}`}
+                title={!revealed.squadron ? `-${CLUE_COST.squadron} pts` : ""}
+                onClick={() => reveal("squadron")}
+              >
+                <span className="clue-label">Squadron?</span>
+                {revealed.squadron && yesNo(vehicle?.is_squadron)}
+              </div>
+            </div>
+
+            {message && <p className="message">{message}</p>}
+          </div>
+        </>
+      )}
+    </>
   );
 }
