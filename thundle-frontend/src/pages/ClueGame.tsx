@@ -183,7 +183,7 @@ export default function ClueGame() {
 
   /* ───── JSX ───── */
   return (
-    <div className="relative w-full min-h-screen p-5 bg-background text-[#dfe7ff] rounded-xl font-sans">
+    <div className="relative w-full min-h-screen p-5 bg-background text-[#dfe7ff] font-sans">
       <ModeSelector game={isArchive ? "clue-archive" : "clue-game"} />
 
       {loading ? (
@@ -227,25 +227,25 @@ export default function ClueGame() {
           </div>
 
           {/* grid */}
-          <div className="grid grid-cols-4 auto-rows-[120px] gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 auto-rows-[120px] gap-3">
             {/* NAME */}
             <div
               className={`col-span-2 text-xl tracking-widest ${revealed.name ? "bg-[#2f5e39] cursor-default" : "bg-[#2b3549] cursor-pointer"} rounded-lg relative p-1 flex items-center justify-center text-center`}
               title={!revealed.name ? `-${CLUE_COST.name} pts` : ""}
               onClick={() => reveal("name")}
             >
-              {revealed.name ? vehicle && masked(vehicle.name) : <span className="text-xs sm:text-sm md:text-base uppercase tracking-wider text-[#b9c5e1] text-wrap">Name</span>}
+              {revealed.name ? <span className="text-lg md:text-xl lg:text-3xl">{vehicle && masked(vehicle.name)}</span> : <span className="text-lg md:text-xl lg:text-3xl uppercase tracking-wider text-[#b9c5e1] text-wrap">Name</span>}
             </div>
 
             {/* IMAGE */}
             <div
-              className={`row-span-3 col-span-2 ${revealed.image ? "bg-[#2f5e39] cursor-default" : "bg-[#2b3549] cursor-pointer"} rounded-lg relative p-1 flex items-center justify-center text-center`}
+              className={`col-span-2 row-span-2 order-last md:row-span-3 md:col-span-2 md:order-none ${revealed.image ? "bg-[#2f5e39] cursor-default" : "bg-[#2b3549] cursor-pointer"} rounded-lg relative p-1 flex items-center justify-center text-center`}
               title={!revealed.image ? `-${CLUE_COST.image} pts` : ""}
               onClick={() => reveal("image")}
             >
               {revealed.image ? vehicle && (
-                <img src={vehicle.image_url} alt="vehicle" className="w-full h-full object-cover rounded-md" />
-              ) : <span className="text-xs sm:text-sm md:text-base uppercase tracking-wider text-[#b9c5e1] text-wrap">Image</span>}
+                <img src={vehicle.image_url} alt="vehicle" className="w-full h-full object-contain rounded-md" />
+              ) : <span className="text-lg md:text-xl lg:text-3xl uppercase tracking-wider text-[#b9c5e1] text-wrap">Image</span>}
             </div>
 
             {/* COUNTRY / TYPE / TIER / BR */}
@@ -254,28 +254,28 @@ export default function ClueGame() {
               title={!revealed.country ? `-${CLUE_COST.country} pts` : ""}
               onClick={() => reveal("country")}
             >
-              {revealed.country ? vehicle?.country : <span className="text-xs sm:text-sm md:text-base uppercase tracking-wider text-[#b9c5e1] text-wrap">Country</span>}
+              {revealed.country ? <span className="text-lg md:text-xl lg:text-3xl">{vehicle?.country}</span> : <span className="text-lg md:text-xl lg:text-3xl uppercase tracking-wider text-[#b9c5e1] text-wrap">Country</span>}
             </div>
             <div
               className={`${revealed.type ? "bg-[#2f5e39] cursor-default" : "bg-[#2b3549] cursor-pointer"} rounded-lg relative p-1 flex items-center justify-center text-center`}
               title={!revealed.type ? `-${CLUE_COST.type} pts` : ""}
               onClick={() => reveal("type")}
             >
-              {revealed.type ? vehicle?.vehicle_type : <span className="text-xs sm:text-sm md:text-base uppercase tracking-wider text-[#b9c5e1] text-wrap">Type</span>}
+              {revealed.type ? <span className="text-lg md:text-xl lg:text-3xl">{vehicle?.vehicle_type}</span> : <span className="text-lg md:text-xl lg:text-3xl uppercase tracking-wider text-[#b9c5e1] text-wrap">Type</span>}
             </div>
             <div
               className={`${revealed.tier ? "bg-[#2f5e39] cursor-default" : "bg-[#2b3549] cursor-pointer"} rounded-lg relative p-1 flex items-center justify-center text-center`}
               title={!revealed.tier ? `-${CLUE_COST.tier} pts` : ""}
               onClick={() => reveal("tier")}
             >
-              {revealed.tier ? vehicle?.tier : <span className="text-xs sm:text-sm md:text-base uppercase tracking-wider text-[#b9c5e1] text-wrap">Tier</span>}
+              {revealed.tier ? <span className="text-lg md:text-xl lg:text-3xl">{vehicle?.tier}</span> : <span className="text-lg md:text-xl lg:text-3xl uppercase tracking-wider text-[#b9c5e1] text-wrap">Tier</span>}
             </div>
             <div
               className={`${revealed.br ? "bg-[#2f5e39] cursor-default" : "bg-[#2b3549] cursor-pointer"} rounded-lg relative p-1 flex items-center justify-center text-center`}
               title={!revealed.br ? `-${CLUE_COST.br} pts` : ""}
               onClick={() => reveal("br")}
             >
-              {revealed.br ? vehicle?.realistic_br : <span className="text-xs sm:text-sm md:text-base uppercase tracking-wider text-[#b9c5e1] text-wrap">BR</span>}
+              {revealed.br ? <span className="text-lg md:text-xl lg:text-3xl">{vehicle?.realistic_br}</span> : <span className="text-lg md:text-xl lg:text-3xl uppercase tracking-wider text-[#b9c5e1] text-wrap">BR</span>}
             </div>
 
             {/* FLAGS */}
@@ -286,7 +286,7 @@ export default function ClueGame() {
                 title={!revealed[k] ? `-${CLUE_COST[k]} pts` : ""}
                 onClick={() => reveal(k)}
               >
-                {revealed[k] ? yesNo((vehicle as any)[`is_${k}`]) : <span className="text-xs sm:text-sm md:text-base uppercase tracking-wider text-[#b9c5e1] text-wrap">{k === "marketplace" ? "Market" : k === "squadron" ? "Squad" : k.charAt(0).toUpperCase() + k.slice(1)}</span>}
+                {revealed[k] ? <span className="text-lg md:text-xl lg:text-3xl">{yesNo((vehicle as any)[`is_${k}`])}</span> : <span className="text-lg md:text-xl lg:text-3xl uppercase tracking-wider text-[#b9c5e1] text-wrap">{k === "marketplace" ? "Market" : k === "squadron" ? "Squad" : k.charAt(0).toUpperCase() + k.slice(1)}</span>}
               </div>
             ))}
           </div>
