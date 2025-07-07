@@ -5,6 +5,7 @@ from sys import stdout
 from datetime import datetime
 from typing import Literal
 from bson import ObjectId
+from re import fullmatch
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,7 +13,8 @@ from dotenv import load_dotenv
 from pydantic import BaseModel, HttpUrl, Field
 
 from data import (get_date_hash_index, get_objects,
-                  cache_document, get_doc_from_cache)
+                  cache_document, get_doc_from_cache,
+                  get_archive)
 
 
 class Vehicle(BaseModel):
@@ -39,6 +41,27 @@ class Vehicle(BaseModel):
         json_encoders = {ObjectId: str}
         orm_mode = True
 
+
+class CacheVehicle(BaseModel):
+    _id: str = Field(alias='_id')
+    country: str
+    vehicle_type: str
+    tier: int
+    realistic_br: float
+    realistic_ground_br: float
+    is_event: bool
+    release_date: datetime | None
+    is_premium: bool
+    is_pack: bool
+    is_marketplace: bool
+    is_squadron: bool
+    image_url: HttpUrl
+    mode: Literal["ground", "air", "naval", "helicopter"]
+    name: str
+    description: str | None
+    game_mode: str
+    data_set: str
+    date: str
 
 class VehicleOption(BaseModel):
     id: str = Field(alias="_id")
@@ -91,6 +114,13 @@ def validate_game(game: str) -> bool:
     """Return true if game is an accepted value."""
     if isinstance(game, str):
         return game in ["blur", "clue"]
+    return False
+
+
+def validate_date(date: str) -> bool:
+    """Return true if date is an accepted value."""
+    if isinstance(date, str):
+        return bool(fullmatch(r"\d{1,2}_\d{1,2}_\d{4}", date))
     return False
 
 
@@ -165,3 +195,15 @@ async def root(mode: str = "all"):
     for v in documents:
         v["_id"] = str(v["_id"])
     return [VehicleOption(**doc) for doc in documents]
+
+
+@app.get("/historic", response_model=list[CacheVehicle] | None)
+async def root(date: str = "07_07_2025", game: str = "blur"):
+    if not validate_game(game):
+        raise HTTPException(status_code=400, detail="Game value not accepted.")
+    if not validate_date(date):
+        raise HTTPException(status_code=400, detail="Date value not accepted must be in format, DD_MM_YYYY")
+    documents = get_archive(date, game)
+    if documents:
+        return [CacheVehicle(**doc) for doc in documents]
+    return None

@@ -4,7 +4,6 @@ from os import environ as ENV
 from hashlib import sha256
 from datetime import date, timedelta
 from logging import getLogger
-from uuid import uuid4
 
 from dotenv import load_dotenv
 from pymongo.mongo_client import MongoClient
@@ -77,6 +76,22 @@ def get_doc_from_cache(mode: str = "all", game: str = "blur") -> dict:
     if document:
         logger.info("Found document in cache: %s", document[0])
         return document[0]
+    return None
+
+
+def get_archive(date: str, game: str = "blur"):
+    """Return all documents in cache for that game type."""
+    logger = getLogger()
+    logger.info("Checking cache for documents...")
+    collection = get_collection("cache")
+    query = { 
+        "game_mode": game,
+        "date": date.replace("_", "/")
+    }
+    documents = list(collection.find(query))
+    if documents:
+        logger.info("Found documents in cache, displaying first example: %s", documents[0])
+        return documents
     return None
 
 
