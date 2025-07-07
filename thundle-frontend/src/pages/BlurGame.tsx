@@ -1,42 +1,20 @@
-/*
- * React frontend for the **Thundle Internal API**.
- * -------------------------------------------------------
- * - Uses Axios to talk to `/random` and `/vehicles` endpoints.
- * - Keeps the existing modal/layout/notification structure so your current
- *   components continue to work with minimal changes.
- */
-import {
-  useEffect,
-  useState,
-} from "react";
+/* ─────────────────────────────────────────
+   BlurGame.tsx
+   Supports Daily  → /blur-game/:mode
+            Archive → /blur-archive/:mode/:date
+   ───────────────────────────────────────── */
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import { useParams } from "react-router-dom";
 import ModeSelector from "../components/ModeSelector";
 import { usePersistentState } from "../hooks/usePersistentState";
-import "./BlurGame.css"
+import "./BlurGame.css";
 
-// ────────────────────────────────────────────────────────────
-// 🔸 Types ───────────────────────────────────────────────────
-// ────────────────────────────────────────────────────────────
-
+/* ───────────── Types ───────────── */
 export interface Vehicle {
   _id: string;
-  country: string;
-  vehicle_type: string;
-  tier: number;
-  realistic_br: number;
-  realistic_ground_br: number;
-  is_event: boolean;
-  release_date: string;
-  is_premium: boolean;
-  is_pack: boolean;
-  is_marketplace: boolean;
-  is_squadron: boolean;
   image_url: string;
-  mode: string;
   name: string;
-  description: string;
 }
 
 export interface VehicleOption {
@@ -44,201 +22,180 @@ export interface VehicleOption {
   name: string;
 }
 
-// ────────────────────────────────────────────────────────────
-// 🔸 Environment & Helpers ──────────────────────────────────
-// ────────────────────────────────────────────────────────────
-
-/**
- * Base URL for the FastAPI backend.
- * Configure this in a Vite/CRA env file, e.g. `THUNDLE_API=http://localhost:8000`.
- */
+/* ───────────── Config ───────────── */
 const API_BASE = import.meta.env.VITE_THUNDLE_API ?? "";
 
-// ────────────────────────────────────────────────────────────
-// 🔸 Main App Component ──────────────────────────────────────
-// ────────────────────────────────────────────────────────────
-
-const BLUR_LEVELS = [
-  "blur-10px",
-  "blur-7-5px",
-  "blur-5px",
-  "blur-2-5px",
-  "blur-none"
-];
-
+const BLUR_LEVELS = ["blur-10px", "blur-7-5px", "blur-5px", "blur-2-5px", "blur-none"];
 const guessesAllowed = BLUR_LEVELS.length - 1;
 
-function BlurGame() {
-  const { mode = "all" } = useParams<"mode">();
-  const [loading, setLoading] = useState(true);
+/* helper: YYYY‑MM‑DD in Berlin */
+const berlinDate = () =>
+  new Date().toLocaleDateString("en-CA", { timeZone: "Europe/Berlin" });
 
-  const today = new Date().toLocaleDateString("en-CA", { timeZone: "Europe/Berlin" });
-  const blurKey = `blur-${mode}-blurIndex-${today}`;
-  const messageKey = `blur-${mode}-message-${today}`;
+/* ───────────── Component ───────────── */
+export default function BlurGame({ archive = false }: { archive?: boolean } = {}) {
+  const { mode = "all", date } = useParams<"mode" | "date">();
+  const isArchive      = Boolean(date);
+  const today          = berlinDate();
+  const gameDate       = isArchive ? (date as string) : today;        // key suffix
 
-  const [blurIndex, setBlurIndex] = usePersistentState<number>(blurKey, 0);
-  const [message, setMessage]     = usePersistentState<string>(messageKey, "");
+  /* persistent keys (mode + date) */
+  const blurKey    = `blur-${mode}-blurIndex-${gameDate}`;
+  const messageKey = `blur-${mode}-message-${gameDate}`;
+  const dataKey    = isArchive
+    ? `blur-${mode}-archive-${date}`
+    : `blur-${mode}-daily-${today}`;
 
-  const [guess, setGuess]         = useState("");
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [correctAnswer, setCorrectAnswer] = useState("");
-  const [imageUrl, setImageUrl] = useState();
-  const [vehicleOptions, setVehicleNames] = useState<VehicleOption[]>([]);
-  const navigate = useNavigate();
+  /* state */
+  const [loading, setLoading]       = useState(true);
+  const [blurIndex, setBlurIndex]   = usePersistentState<number>(blurKey, 0);
+  const [message, setMessage]       = usePersistentState<string>(messageKey, "");
+  const [guess, setGuess]           = useState("");
+  const [imageLoaded, setImgLoaded] = useState(false);
+  const [correctAnswer, setAnswer]  = useState("");
+  const [imageUrl, setImageUrl]     = useState<string>();
+  const [names, setNames]           = useState<VehicleOption[]>([]);
+  const nav = useNavigate();
 
-  function getBerlinDateString(): string {
-    return new Date().toLocaleDateString("en-CA", { timeZone: "Europe/Berlin" }); // "YYYY-MM-DD"
-  }
-
+  /* fetch vehicle: daily via /random, archive via /historic */
   useEffect(() => {
-    async function fetchOrLoadVehicle() {
+    async function loadVehicle() {
       setLoading(true);
-      const today = getBerlinDateString();
-      const cacheKey = `blur-${mode}-data-${today}`;
 
-      const cached = localStorage.getItem(cacheKey);
+      const cached = localStorage.getItem(dataKey);
       if (cached) {
-        const parsed = JSON.parse(cached);
-        setCorrectAnswer(parsed.correctAnswer);
-        setImageUrl(parsed.imageUrl);
+        const v = JSON.parse(cached) as Vehicle;
+        setAnswer(v.name.toLowerCase());
+        setImageUrl(v.image_url);
         setLoading(false);
         return;
       }
 
-      // Not cached, so fetch
       try {
-        const response = await axios.get(`${API_BASE}/random`, {
-          params: { 
-            "mode": mode, 
-            "game": "blur" 
+        if (isArchive) {
+          const { data } = await axios.get<Vehicle[]>(`${API_BASE}/historic`, {
+            params: { date, game: "blur", mode }
+          });
+          if (data?.length) {
+            const v = data[0];
+            setAnswer(v.name.toLowerCase());
+            setImageUrl(v.image_url);
+            localStorage.setItem(dataKey, JSON.stringify(v));
           }
-        });
-        const data = response.data;
-
-        setCorrectAnswer(data.name.toLowerCase());
-        setImageUrl(data.image_url);
-
-        localStorage.setItem(cacheKey, JSON.stringify({
-          correctAnswer: data.name.toLowerCase(),
-          imageUrl: data.image_url
-        }));
-      } catch (error) {
-        setMessage("Failed to load vehicle.");
-        console.error("Fetch failed:", error);
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchOrLoadVehicle();
-  }, [mode]);
-
-  useEffect(() => {
-    async function fetchAllNames() {
-      try {
-        const { data } = await axios.get<VehicleOption[]>(`${API_BASE}/names`, {
-          params: { 
-            "mode": mode
-          }
-        });
-        setVehicleNames(data);
+        } else {
+          const { data } = await axios.get<Vehicle>(`${API_BASE}/random`, {
+            params: { mode }
+          });
+          setAnswer(data.name.toLowerCase());
+          setImageUrl(data.image_url);
+          localStorage.setItem(dataKey, JSON.stringify(data));
+        }
       } catch (err) {
-        console.error("Could not load vehicle names for autocomplete:", err);
+        setMessage("Failed to load vehicle.");
+        console.error(err);
+      } finally {
+        setLoading(false);
       }
     }
-    fetchAllNames();
+    loadVehicle();
+  }, [mode, date]); // refetch if mode or archive‑date changes
+
+  /* fetch autocomplete names (mode‑specific, no archive) */
+  useEffect(() => {
+    axios
+      .get<VehicleOption[]>(`${API_BASE}/names`, { params: { mode } })
+      .then((r) => setNames(r.data))
+      .catch(() => setNames([]));
   }, [mode]);
 
+  /* ensure guess/message reset when mode/date changes */
   useEffect(() => {
-    const existingBlur = localStorage.getItem(blurKey);
-    const existingMsg = localStorage.getItem(messageKey);
-
-    if (!existingBlur || !existingMsg) {
-      setBlurIndex(0);
-      setMessage("");
-    }
+    const haveSaved = localStorage.getItem(blurKey);
+    if (!haveSaved) setBlurIndex(0);
 
     setGuess("");
-  }, [mode, today]);
+  }, [mode, date]);
 
+  /* guess handler */
   const handleGuess = () => {
-    const cleanGuess = guess.trim().toLowerCase();
-
-    if (cleanGuess === correctAnswer) {
-      setMessage("Correct! You guessed it!");
+    if (!imageUrl) return;
+    const clean = guess.trim().toLowerCase();
+    if (clean === correctAnswer) {
+      setMessage("Correct!");
       setBlurIndex(BLUR_LEVELS.length - 1);
     } else {
-      if (blurIndex < guessesAllowed) {
-        setBlurIndex(blurIndex + 1);
-        setMessage("Incorrect. Try again.");
-      } else {
-        setBlurIndex(blurIndex + 1);
-        setMessage(`Out of guesses! The answer was: ${correctAnswer}`);
-      }
+      const newIndex = Math.min(blurIndex + 1, BLUR_LEVELS.length - 1);
+      setBlurIndex(newIndex);
+      setMessage(newIndex === BLUR_LEVELS.length - 1
+        ? `Out of guesses! Answer: ${correctAnswer}`
+        : "Incorrect. Try again.");
     }
     setGuess("");
   };
 
+  /* disable until ready */
+  const disabled = loading || !imageLoaded || blurIndex >= guessesAllowed;
+
+  /* ─────────── JSX ─────────── */
   return (
-    <>
-      {loading ? (
-        <div className="flex justify-center items-center h-[300px]">
-          <p className="text-gray-300">Loading vehicle...</p>
-        </div>
-      ) : (
-        <>
-          <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white p-4">
-            <ModeSelector game="blur-game" />
-            <h1 className="text-3xl font-bold mb-4">Blurdle: {mode}</h1>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white p-4">
+      <ModeSelector game={isArchive ? "blur-archive" : "blur-game"} />
 
-            <div className="w-full max-w-lg">
-              <div className="w-full aspect-video overflow-hidden border border-gray-700 rounded-lg">
-                <img
-                  src={imageUrl}
-                  alt="Guess the tank"
-                  className={`w-full h-full object-cover transition-all duration-500 ${BLUR_LEVELS[blurIndex]}`}
-                  onLoad={() => setImageLoaded(true)}
-                />
-              </div>
+      <h1 className="text-3xl font-bold mb-4">
+        {isArchive ? "Blurdle Archive" : "Blurdle"}&nbsp;
+        <span className="text-sm text-gray-400">({mode}{isArchive && ` · ${date}`})</span>
+      </h1>
 
-              <div className="mt-4 flex gap-2">
-                <input
-                  type="text"
-                  list="vehicle-options"
-                  value={guess}
-                  onChange={(e) => setGuess(e.target.value)}
-                  className="flex-1 px-4 py-2 text-black rounded"
-                  placeholder="Enter your guess"
-                />
-                <button
-                  onClick={handleGuess}
-                  className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700"
-                  disabled={!imageLoaded || blurIndex > BLUR_LEVELS.length - 1}
-                >
-                  Guess
-                </button>
-              </div>
-
-              <datalist id="vehicle-options">
-                {vehicleOptions.map((vehicle) => (
-                  <option key={vehicle._id} value={vehicle.name} />
-                ))}
-              </datalist>
-
-              {message && <p className="mt-4 text-center text-lg">{message}</p>}
-
-              <button
-                  onClick={() => navigate("/")}
-                  className="absolute top-4 left-4 bg-gray-800 text-white px-3 py-1 rounded hover:bg-gray-700 transition"
-              >
-                  ← Return to Home
-              </button>
-            </div>
+      <div className="w-full max-w-lg">
+        {loading ? (
+          <div className="flex justify-center items-center aspect-video border border-gray-700 rounded-lg">
+            <p className="text-gray-400 italic">Loading…</p>
           </div>
-        </>
-      )}
-    </>
+        ) : (
+          <div className="w-full aspect-video overflow-hidden border border-gray-700 rounded-lg">
+            <img
+              src={imageUrl}
+              alt="Guess the vehicle"
+              className={`w-full h-full object-cover transition-all duration-500 ${BLUR_LEVELS[blurIndex]}`}
+              onLoad={() => setImgLoaded(true)}
+            />
+          </div>
+        )}
+
+        <div className="mt-4 flex gap-2">
+          <input
+            type="text"
+            list="vehicle-options"
+            value={guess}
+            onChange={(e) => setGuess(e.target.value)}
+            className="flex-1 px-4 py-2 text-black rounded"
+            placeholder="Enter your guess"
+            disabled={disabled}
+          />
+          <button
+            onClick={handleGuess}
+            className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-40"
+            disabled={disabled}
+          >
+            Guess
+          </button>
+        </div>
+
+        <datalist id="vehicle-options">
+          {names.map((v) => (
+            <option key={v._id} value={v.name} />
+          ))}
+        </datalist>
+
+        {message && <p className="mt-4 text-center text-lg">{message}</p>}
+
+        <button
+          onClick={() => nav("/")}
+          className="absolute top-4 left-4 bg-gray-800 text-white px-3 py-1 rounded hover:bg-gray-700"
+        >
+          ← Home
+        </button>
+      </div>
+    </div>
   );
 }
-
-export default BlurGame;

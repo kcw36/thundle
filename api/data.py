@@ -79,7 +79,7 @@ def get_doc_from_cache(mode: str = "all", game: str = "blur") -> dict:
     return None
 
 
-def get_archive(date: str, game: str = "blur"):
+def get_archive(date: str, game: str = "blur", mode: str = "all"):
     """Return all documents in cache for that game type."""
     logger = getLogger()
     logger.info("Checking cache for documents...")
@@ -87,11 +87,13 @@ def get_archive(date: str, game: str = "blur"):
     if date:
         query = { 
             "game_mode": game,
+            "data_set": mode,
             "date": date.replace("_", "/")
         }
     else:
         query = { 
-            "game_mode": game
+            "game_mode": game,
+            "data_set": mode
         }
     documents = list(collection.find(query))
     if documents:

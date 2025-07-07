@@ -15,7 +15,7 @@ export default function Menu() {
           Blurdle (Daily)
         </button>
         <button 
-          onClick={() => navigate(`/blur-archive/all`)}
+          onClick={() => navigate(`/blur-archive`)}
           className="menu-button"
         >
           Blurdle (Archive)
@@ -27,7 +27,7 @@ export default function Menu() {
           Cluedle (Daily)
         </button>
         <button 
-          onClick={() => navigate(`/clue-archive/all`)}
+          onClick={() => navigate(`/clue-archive`)}
           className="menu-button"
         >
           Cluedle (Archive)

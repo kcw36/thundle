@@ -4,9 +4,9 @@ import "./ModeSelector.css"; // tiny flex row
 
 const modes = ["all", "ground", "air", "naval", "helicopter"] as const;
 
-export default function ModeSelector({ game }: { game: "blur-game" | "clue-game" }) {
+export default function ModeSelector({ game }: { game: "blur-game" | "clue-game" | "blur-archive" | "clue-archive" }) {
   const navigate = useNavigate();
-  const { mode = "all" } = useParams<"mode">();
+  const { mode = "all", date } = useParams<"mode" | "date">();
 
   return (
     <div className="mode-selector">
@@ -16,7 +16,8 @@ export default function ModeSelector({ game }: { game: "blur-game" | "clue-game"
           className={m === mode ? "active" : ""}
           onClick={() => {
             localStorage.setItem("thundle-mode", m);
-            navigate(`/${game}/${m}`);
+            const path = `/${game}/${m}${date ? `/${date}` : ""}`;
+            navigate(path);
           }}
         >
           {m}

@@ -198,12 +198,14 @@ async def root(mode: str = "all"):
 
 
 @app.get("/historic", response_model=list[CacheVehicle] | None)
-async def root(date: str = "07_07_2025", game: str = "blur"):
+async def root(date: str = "07_07_2025", game: str = "blur", mode: str = "all"):
     if not validate_game(game):
         raise HTTPException(status_code=400, detail="Game value not accepted.")
     if not validate_date(date):
-        raise HTTPException(status_code=400, detail="Date value not accepted must be in format, DD_MM_YYYY")
-    documents = get_archive(date, game)
+        raise HTTPException(status_code=400, detail="Date value not accepted, must be in format, DD_MM_YYYY")
+    if not validate_mode(mode):
+        raise HTTPException(status_code=400, detail="Mode value not accepted.")
+    documents = get_archive(date, game, mode)
     if documents:
         return [CacheVehicle(**doc) for doc in documents]
     return None
@@ -215,5 +217,5 @@ async def root(game: str = "blur"):
         raise HTTPException(status_code=400, detail="Game value not accepted.")
     documents = get_archive(None, game)
     if documents:
-        return sorted(list(set(doc["date"] for doc in documents)))
+        return sorted(list(set(doc["date"].replace("/", "_") for doc in documents)))
     return None

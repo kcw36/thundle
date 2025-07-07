@@ -1,27 +1,33 @@
 // src/pages/ArchiveMenu.tsx
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
+/* ───────────── Config ───────────── */
+const API_BASE = import.meta.env.VITE_THUNDLE_API ?? "";
+
 export default function ArchiveMenu({ game }: { game: "blur" | "clue" }) {
-  const { mode = "all" } = useParams<"mode">();
   const [dates, setDates] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
   const nav = useNavigate();
 
   useEffect(() => {
-    axios
-      .get<string[]>(`/cached_dates`, { params: { game } })
-      .then((r) => setDates(r.data ?? []))
-      .catch(() => setDates([]));
-  }, [game]);
+    axios.get<string[]>(`${API_BASE}/cached_dates`, {
+      params: { game: game }
+    }).then(res => {
+      setDates(res.data);
+      setLoading(false);
+    });
+  }, []);
 
   return (
-    <div className="archive-menu">
-      <h2>{game === "blur" ? "Blurdle" : "Cluedle"} Archive ({mode})</h2>
+    <div className="p-4">
+      <h1>{game === "blur" ? "Blurdle" : "Cluedle"} Archive</h1>
+      {loading && <p>Loading...</p>}
       {dates.map((d) => (
         <button
           key={d}
-          onClick={() => nav(`/${game}-archive/${mode}/${d}`)}
+          onClick={() => nav(`/${game}-archive/all/${d}`)}
         >
           {d.replaceAll("_", "/")}
         </button>
