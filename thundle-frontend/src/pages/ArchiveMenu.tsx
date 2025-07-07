@@ -1,6 +1,7 @@
 // src/pages/ArchiveMenu.tsx
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "./Menu.css"
 import axios from "axios";
 
 /* ───────────── Config ───────────── */
@@ -21,18 +22,26 @@ export default function ArchiveMenu({ game }: { game: "blur" | "clue" }) {
   }, []);
 
   return (
-    <div className="p-4">
-      <h1>{game === "blur" ? "Blurdle" : "Cluedle"} Archive</h1>
+    <div className="menu-container">
+      <h1 className="menu-title">{game === "blur" ? "Blurdle" : "Cluedle"} Archive</h1>
       {loading && <p>Loading...</p>}
-      {dates.map((d) => (
-        <button
-          key={d}
-          onClick={() => nav(`/${game}-archive/all/${d}`)}
+      <div className="menu-buttons">
+        {dates.map((d) => (
+            <button
+                key={d}
+                onClick={() => nav(`/${game}-archive/all/${d}`)}
+                className="menu-button"
+            >
+                {d.replaceAll("_", "/")}
+            </button>
+        ))}
+        <button 
+            onClick={() => nav("/")}
+            className="menu-button"
         >
-          {d.replaceAll("_", "/")}
+            ← Back
         </button>
-      ))}
-      <button onClick={() => nav("/")}>← Back</button>
+      </div>
     </div>
   );
 }
