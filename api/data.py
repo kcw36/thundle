@@ -2,8 +2,9 @@
 
 from os import environ as ENV
 from hashlib import sha256
-from datetime import date
+from datetime import date, timedelta
 from logging import getLogger
+from uuid import uuid4
 
 from dotenv import load_dotenv
 from pymongo.mongo_client import MongoClient
@@ -20,12 +21,13 @@ def get_collection(name: str = "vehicles") -> Collection:
     return db[name]
 
 
-def get_date_hash_index(n: int) -> int:
+def get_date_hash_index(n: int, offset: int) -> int:
     """Return index for an iterable of length n selected by date hash."""
     logger = getLogger()
     logger.info("Finding date based list index for list of size %s...", n)
-    now = date.today().isoformat()
-    hash_now = int(sha256(now.encode()).hexdigest(), 16)
+    date_offset = date.today() + timedelta(weeks=offset*52)
+    time_to_encode = date_offset.isoformat()
+    hash_now = int(sha256(time_to_encode.encode()).hexdigest(), 16)
     return hash_now % n
 
 
@@ -49,24 +51,27 @@ def get_objects(mode: str, limit: int = None) -> list[dict]:
     return documents
 
 
-def cache_document(doc: dict, mode: str = "all"):
+def cache_document(doc: dict, mode: str = "all", game: str = "blur"):
     """Upload random selection for today's date to MongoDB."""
     logger = getLogger()
     logger.info("Caching document...")
     collection = get_collection("cache")
     doc["date"] = date.today().strftime(r"%d/%m/%Y")
     doc["data_set"] = mode
+    doc["game_mode"] = game
+    del doc["_id"]
     collection.insert_one(doc)
 
 
-def get_doc_from_cache(mode: str = "all") -> dict:
+def get_doc_from_cache(mode: str = "all", game: str = "blur") -> dict:
     """Return cached object for today's date if it is present."""
     logger = getLogger()
     logger.info("Checking cache for document...")
     collection = get_collection("cache")
     query = { 
         "date": date.today().strftime(r"%d/%m/%Y"),
-        "data_set": mode
+        "data_set": mode,
+        "game_mode": game
     }
     document = list(collection.find(query))
     if document:

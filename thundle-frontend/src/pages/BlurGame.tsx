@@ -108,7 +108,10 @@ function BlurGame() {
       // Not cached, so fetch
       try {
         const response = await axios.get(`${API_BASE}/random`, {
-          params: { mode }
+          params: { 
+            "mode": mode, 
+            "game": "blur" 
+          }
         });
         const data = response.data;
 
@@ -134,7 +137,9 @@ function BlurGame() {
     async function fetchAllNames() {
       try {
         const { data } = await axios.get<VehicleOption[]>(`${API_BASE}/names`, {
-          params: { mode },
+          params: { 
+            "mode": mode
+          }
         });
         setVehicleNames(data);
       } catch (err) {

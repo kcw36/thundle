@@ -16,7 +16,7 @@ from data import (get_date_hash_index, get_objects,
 
 
 class Vehicle(BaseModel):
-    id: str = Field(alias='_id')
+    _id: str = Field(alias='_id')
     country: str
     vehicle_type: str
     tier: int
@@ -87,6 +87,22 @@ def validate_limit(limit: int) -> bool:
     return False
 
 
+def validate_game(game: str) -> bool:
+    """Return true if game is an accepted value."""
+    if isinstance(game, str):
+        return game in ["blur", "clue"]
+    return False
+
+
+def get_offset_from_game(game: str) -> int:
+    """Return offset integer from game string."""
+    game_offset_map = {
+        "blur" : 0,
+        "clue" : 1
+    }
+    return game_offset_map[game]
+
+
 @app.get("/")
 async def root():
     return {
@@ -115,15 +131,15 @@ async def root():
 
 
 @app.get("/random", response_model=Vehicle)
-async def root(mode: str = "all"):
+async def root(mode: str = "all", game: str = "blur"):
     if not validate_mode(mode):
         raise HTTPException(status_code=400, detail="Mode value not accepted.")
-    document = get_doc_from_cache(mode)
+    document = get_doc_from_cache(mode, game)
     if document:
         return document
     data = get_objects(mode)
-    hash_i = get_date_hash_index(len(data))
-    cache_document(data[hash_i], mode)
+    hash_i = get_date_hash_index(len(data), get_offset_from_game(game))
+    cache_document(data[hash_i], mode, game)
     logger.info("Random vehicle is: %s", Vehicle(**data[hash_i]))
     data[hash_i]["_id"] = str(data[hash_i]["_id"])
     return Vehicle(**data[hash_i])
