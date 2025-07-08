@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import Countdown from "../components/Countdown";
 
 
 export default function Menu() {
@@ -32,6 +33,9 @@ export default function Menu() {
         >
           Cluedle (Archive)
         </button>
+      </div>
+      <div className="mt-8">
+        <Countdown />
       </div>
     </div>
   );
