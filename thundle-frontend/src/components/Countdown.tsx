@@ -19,7 +19,7 @@ const Countdown = () => {
       // Calculate total seconds remaining in the day
       const secondsPassed = hours * 3600 + minutes * 60 + seconds;
       const totalSecondsInDay = 24 * 3600;
-      const secondsRemaining = totalSecondsInDay - secondsPassed;
+      const secondsRemaining = (totalSecondsInDay - secondsPassed) % totalSecondsInDay;
 
       // Format remaining time
       const h = Math.floor(secondsRemaining / 3600);
