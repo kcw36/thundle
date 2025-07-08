@@ -47,7 +47,7 @@ export default function ArchiveMenu({ game }: { game: "blur" | "clue" }) {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background text-white text-center w-full">
       <h1 className="text-4xl mb-8">
-        {game === "blur" ? "Blurdle" : "Cluedle"} Archive
+        {game === "blur" ? "Blurdle" : "Cluedle"} Archive
       </h1>
 
       {loading && <p>Loading…</p>}
@@ -64,7 +64,7 @@ export default function ArchiveMenu({ game }: { game: "blur" | "clue" }) {
         ))}
 
         <button onClick={() => nav("/")} className="px-6 py-3 bg-blue-600 text-white rounded-md text-lg cursor-pointer transition-colors duration-300 hover:bg-blue-700">
-          ← Back
+          ← Back
         </button>
       </div>
     </div>

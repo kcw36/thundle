@@ -140,7 +140,7 @@ export default function ClueGame() {
       }
     }
     loadVehicle();
-  }, [mode, date]);
+  }, [mode, date, ansKey, isArchive, vKey]);
 
   /* autocomplete names */
   useEffect(() => {
@@ -156,7 +156,7 @@ export default function ClueGame() {
     if (!localStorage.getItem(ptsKey)) setPoints(100);
     setGuess("");
     setMessage("");
-  }, [mode, date]);
+  }, [mode, date, revKey, ptsKey, setRevealed, setPoints]);
 
   /* helpers */
   const masked = (n: string) =>
@@ -294,7 +294,7 @@ export default function ClueGame() {
                 title={!revealed[k] ? `-${CLUE_COST[k]} pts` : ""}
                 onClick={() => reveal(k)}
               >
-                {revealed[k] ? <span className="text-lg md:text-xl lg:text-3xl">{yesNo((vehicle as any)[`is_${k}`])}</span> : <span className="text-lg md:text-xl lg:text-3xl uppercase tracking-wider text-[#b9c5e1] text-wrap">{k === "marketplace" ? "Market" : k === "squadron" ? "Squad" : k.charAt(0).toUpperCase() + k.slice(1)}</span>}
+                {revealed[k] ? <span className="text-lg md:text-xl lg:text-3xl">{yesNo(vehicle && vehicle[`is_${k}`])}</span> : <span className="text-lg md:text-xl lg:text-3xl uppercase tracking-wider text-[#b9c5e1] text-wrap">{k === "marketplace" ? "Market" : k === "squadron" ? "Squad" : k.charAt(0).toUpperCase() + k.slice(1)}</span>}
               </div>
             ))}
           </div>

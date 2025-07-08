@@ -98,7 +98,7 @@ export default function BlurGame() {
       }
     }
     loadVehicle();
-  }, [mode, date]); // refetch if mode or archive‑date changes
+  }, [mode, date, dataKey, isArchive, setMessage]); // refetch if mode or archive‑date changes
 
   /* fetch autocomplete names (mode‑specific, no archive) */
   useEffect(() => {
@@ -114,7 +114,7 @@ export default function BlurGame() {
     if (!haveSaved) setBlurIndex(0);
 
     setGuess("");
-  }, [mode, date]);
+  }, [mode, date, blurKey, setBlurIndex]);
 
   /* guess handler */
   const handleGuess = () => {
@@ -143,7 +143,7 @@ export default function BlurGame() {
 
       <h1 className="text-3xl font-bold mb-4">
         {isArchive ? "Blurdle Archive" : "Blurdle"}&nbsp;
-        <span className="text-sm text-gray-400">({mode}{isArchive && ` · ${date}`})</span>
+        <span className="text-sm text-gray-400">({mode}{isArchive && ` · ${date}`})</span>
       </h1>
 
       <div className="w-full max-w-lg">
