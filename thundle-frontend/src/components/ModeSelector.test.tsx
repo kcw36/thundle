@@ -1,10 +1,11 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation, type Location } from 'react-router-dom';
+import { describe, it, expect } from 'vitest';
 import ModeSelector from './ModeSelector';
 
 describe('ModeSelector component', () => {
   it('renders the mode selector buttons and navigates to the correct URL when a button is clicked', () => {
-    let testLocation;
+    let testLocation: Location | null = null;
     render(
       <MemoryRouter initialEntries={['/blur-game/all']}>
         <Routes>
@@ -38,6 +39,7 @@ describe('ModeSelector component', () => {
     fireEvent.click(screen.getByText('ground'));
 
     // Check that the URL has changed
-    expect(testLocation.pathname).toBe('/blur-game/ground');
+    expect(testLocation).not.toBeNull();
+    expect(testLocation!.pathname).toBe('/blur-game/ground');
   });
 });

@@ -1,0 +1,39 @@
+src/components/ApiKeepAlive.test.tsx(13,21): error TS2339: Property 'mockResolvedValue' does not exist on type '<T = any, R = AxiosResponse<T, any>, D = any>(url: string, config?: AxiosRequestConfig<D> | undefined) => Promise<R>'.
+src/components/ModeSelector.test.tsx(5,1): error TS2582: Cannot find name 'describe'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/components/ModeSelector.test.tsx(6,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/components/ModeSelector.test.tsx(31,5): error TS2304: Cannot find name 'expect'.
+src/components/ModeSelector.test.tsx(32,5): error TS2304: Cannot find name 'expect'.
+src/components/ModeSelector.test.tsx(33,5): error TS2304: Cannot find name 'expect'.
+src/components/ModeSelector.test.tsx(34,5): error TS2304: Cannot find name 'expect'.
+src/components/ModeSelector.test.tsx(35,5): error TS2304: Cannot find name 'expect'.
+src/components/ModeSelector.test.tsx(41,5): error TS2304: Cannot find name 'expect'.
+src/components/ModeSelector.test.tsx(41,12): error TS18048: 'testLocation' is possibly 'undefined'.
+src/pages/ArchiveMenu.test.tsx(9,1): error TS2582: Cannot find name 'describe'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/pages/ArchiveMenu.test.tsx(10,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/pages/ArchiveMenu.test.tsx(12,24): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/pages/ArchiveMenu.test.tsx(23,5): error TS2304: Cannot find name 'expect'.
+src/pages/ArchiveMenu.test.tsx(27,7): error TS2304: Cannot find name 'expect'.
+src/pages/ArchiveMenu.test.tsx(28,7): error TS2304: Cannot find name 'expect'.
+src/pages/ArchiveMenu.test.tsx(32,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/pages/ArchiveMenu.test.tsx(34,24): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/pages/ArchiveMenu.test.tsx(45,5): error TS2304: Cannot find name 'expect'.
+src/pages/ArchiveMenu.test.tsx(49,7): error TS2304: Cannot find name 'expect'.
+src/pages/ArchiveMenu.test.tsx(50,7): error TS2304: Cannot find name 'expect'.
+src/pages/BlurGame.test.tsx(25,1): error TS2582: Cannot find name 'describe'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/pages/BlurGame.test.tsx(26,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/pages/BlurGame.test.tsx(27,24): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/pages/BlurGame.test.tsx(27,50): error TS7006: Parameter 'url' implicitly has an 'any' type.
+src/pages/BlurGame.test.tsx(47,7): error TS2304: Cannot find name 'expect'.
+src/pages/BlurGame.test.tsx(48,7): error TS2304: Cannot find name 'expect'.
+src/pages/ClueGame.test.tsx(33,1): error TS2582: Cannot find name 'describe'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/pages/ClueGame.test.tsx(34,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/pages/ClueGame.test.tsx(35,24): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/pages/ClueGame.test.tsx(35,50): error TS7006: Parameter 'url' implicitly has an 'any' type.
+src/pages/ClueGame.test.tsx(59,5): error TS2304: Cannot find name 'expect'.
+src/pages/Menu.test.tsx(5,1): error TS2582: Cannot find name 'describe'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/pages/Menu.test.tsx(6,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/pages/Menu.test.tsx(14,5): error TS2304: Cannot find name 'expect'.
+src/pages/Menu.test.tsx(17,5): error TS2304: Cannot find name 'expect'.
+src/pages/Menu.test.tsx(18,5): error TS2304: Cannot find name 'expect'.
+src/pages/Menu.test.tsx(19,5): error TS2304: Cannot find name 'expect'.
+src/pages/Menu.test.tsx(20,5): error TS2304: Cannot find name 'expect'.

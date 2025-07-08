@@ -1,7 +1,7 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import axios from 'axios';
-import { vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import ClueGame from './ClueGame';
 
 vi.mock('axios');
