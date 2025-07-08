@@ -1,6 +1,5 @@
 """Module for testing the data module."""
 
-from datetime import date
 from unittest.mock import patch, MagicMock
 
 from freezegun import freeze_time
@@ -15,7 +14,7 @@ def test_get_collection(mock_mongo_client):
     """Test that the get_collection function returns a collection."""
     mock_db = MagicMock()
     mock_mongo_client.return_value = {"test_db": mock_db}
-    with patch.dict("data.ENV", {"DB_NAME": "test_db"}):
+    with patch.dict("data.ENV", {"DB_NAME": "test_db", "DB_CONN_STRING": "test_str"}):
         get_collection("test_collection")
         mock_db.__getitem__.assert_called_once_with("test_collection")
 
