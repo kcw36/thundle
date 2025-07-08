@@ -125,7 +125,7 @@ export default function ClueGame() {
           }
         } else {
           const { data } = await axios.get<Vehicle>(`${API_BASE}/random`, {
-            params: { mode },
+            params: { mode, game: "clue" },
           });
           setVehicle(data);
           setAnswer(data.name.toLowerCase());

@@ -12,7 +12,7 @@ export default function ModeSelector({ game }: { game: "blur-game" | "clue-game"
       {modes.map((m) => (
         <button
           key={m}
-          className={`bg-[#24324f] text-[#dfe7ff] border-none px-2 py-1 rounded cursor-pointer ${m === mode ? "bg-[#1f45ff]" : ""}`}
+          className={`bg-[#24324f] text-[#dfe7ff] border-none px-2 py-1 rounded cursor-pointer hover:bg-accent ${m === mode ? "bg-accent" : ""}`}
           onClick={() => {
             localStorage.setItem("thundle-mode", m);
             const path = `/${game}/${m}${date ? `/${date}` : ""}`;
