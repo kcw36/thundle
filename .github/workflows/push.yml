@@ -53,3 +53,41 @@ jobs:
           find . -name "requirements*.txt" -exec pip install -r {} \;
       - name: "Run tests"
         run: pytest
+  test-js:
+    needs: build
+    name: "Test JS code"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+      - name: "Install node"
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+      - name: "Install dependencies"
+        run: npm install
+        working-directory: ./thundle-frontend
+      - name: "Run JS tests"
+        run: npm test
+        working-directory: ./thundle-frontend
+  lint-js:
+    needs: build
+    name: "Lint JS code"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+      - name: "Install node"
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+      - name: "Install dependencies"
+        run: npm install
+        working-directory: ./thundle-frontend
+      - name: "Run JS lint"
+        run: npm run lint
+        working-directory: ./thundle-frontend
