@@ -24,7 +24,7 @@ const mockNames = [
 
 describe('BlurGame component', () => {
   it('renders the game with a blurred image', async () => {
-    (axios.get as jest.Mock).mockImplementation((url) => {
+    vi.mocked(axios.get).mockImplementation((url) => {
       if (url.includes('/random')) {
         return Promise.resolve({ data: mockVehicle });
       }

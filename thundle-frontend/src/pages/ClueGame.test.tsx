@@ -32,7 +32,7 @@ const mockNames = [
 
 describe('ClueGame component', () => {
   it('renders the game with clues and reveals them on click', async () => {
-    (axios.get as jest.Mock).mockImplementation((url) => {
+    vi.mocked(axios.get).mockImplementation((url) => {
       if (url.includes('/random')) {
         return Promise.resolve({ data: mockVehicle });
       }

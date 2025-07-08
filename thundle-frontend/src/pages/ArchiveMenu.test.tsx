@@ -9,7 +9,7 @@ vi.mock('axios');
 describe('ArchiveMenu component', () => {
   it('renders the archive menu with a list of dates for clue game', async () => {
     // Mock the API call
-    (axios.get as jest.Mock).mockResolvedValue({
+    vi.mocked(axios.get).mockResolvedValue({
       data: ['08_07_2025', '07_07_2025'],
     });
 
@@ -31,7 +31,7 @@ describe('ArchiveMenu component', () => {
 
   it('renders the archive menu with a list of dates for blur game', async () => {
     // Mock the API call
-    (axios.get as jest.Mock).mockResolvedValue({
+    vi.mocked(axios.get).mockResolvedValue({
       data: ['09_07_2025', '10_07_2025'],
     });
 
